@@ -6,8 +6,8 @@ import { deriveKey, encryptApiKey, decryptApiKey } from './crypto';
 
 describe('Vault Cryptography', () => {
     it('should encrypt and decrypt a string securely', async () => {
-        const masterPassword = "TestPassword_123$!";
-        const secretPayload = "sk-ant-test-key-123456";
+        const masterPassword = "vault-mock-pass";
+        const secretPayload = "mock-secret-payload-data";
 
         const encrypted = await encryptApiKey(secretPayload, masterPassword, 'anthropic');
         expect(encrypted.provider).toBe('anthropic');
@@ -21,12 +21,12 @@ describe('Vault Cryptography', () => {
     });
 
     it('should fail to decrypt with the wrong master password', async () => {
-        const masterPassword = "TestPassword_123$!";
-        const secretPayload = "sk-ant-test-key-123456";
+        const masterPassword = "vault-mock-pass";
+        const secretPayload = "mock-secret-payload-data";
 
         const encrypted = await encryptApiKey(secretPayload, masterPassword, 'anthropic');
 
-        await expect(decryptApiKey(encrypted, "WrongPassword!!!"))
+        await expect(decryptApiKey(encrypted, "incorrect-pass-mock"))
             .rejects.toThrow();
     });
 });

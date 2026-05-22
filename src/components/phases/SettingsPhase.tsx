@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
+import { SecureVaultSettings } from '../SecureVaultSettings';
 
 export function SettingsPhase() {
   const { language, setLanguage, t } = useLanguage();
@@ -178,6 +179,12 @@ export function SettingsPhase() {
                      <span>4GB</span>
                      <span>8GB</span>
                    </div>
+                 </div>
+
+                 <hr className="border-slate-200" />
+                 
+                 <div className="pt-2">
+                   <SecureVaultSettings />
                  </div>
               </div>
             </>

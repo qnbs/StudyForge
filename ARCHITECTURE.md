@@ -9,6 +9,10 @@
    * **IndexedDB:** Used securely for application state, agent configurations, conversation history, and citation metadata sync (Zotero/Mendeley).
    * **OPFS (Origin Private File System):** Critical for efficiently storing and accessing gigabytes of embedded PDF vector data locally without locking up the browser main thread.
 3. **No Hidden Telemetry:** The app maintains strict offline paradigms. No external analytics trackers or third-party hidden telemetries are installed. 
+4. **Encrypted BYOK Security Model (Cloud Fallback):** Cloud APIs (e.g., Gemini, OpenAI) may optionally be invoked using the user's *Bring-Your-Own-Key* methodology. 
+   - Uses a **Master Password** derived via PBKDF2 (100,000+ iterations with SHA-256).
+   - API keys are encrypted at rest using AES-GCM and stored only locally in `IndexedDB`.
+   - Keys are explicitly decoupled from any `.env` file structure and never transmitted beyond explicit direct API calls.
 
 ## Component Tree Structure
 

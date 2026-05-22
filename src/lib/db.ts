@@ -1,5 +1,6 @@
 import Dexie, { type Table } from 'dexie';
 import type { Document, Source, Agent, Settings, DocumentChunk } from '../types';
+import type { EncryptedApiKey } from './crypto';
 
 export class StudyForgeDatabase extends Dexie {
   documents!: Table<Document, string>;
@@ -7,15 +8,17 @@ export class StudyForgeDatabase extends Dexie {
   agents!: Table<Agent, string>;
   settings!: Table<Settings, string>;
   documentChunks!: Table<DocumentChunk, string>;
+  secureConfig!: Table<EncryptedApiKey, string>;
 
   constructor() {
     super('StudyForgeDB');
-    this.version(2).stores({
+    this.version(3).stores({
       documents: 'id, title, lastEdited', 
       sources: 'id, title, year, type',
       agents: 'id, name, role',
       settings: 'id',
-      documentChunks: 'id, sourceId'
+      documentChunks: 'id, sourceId',
+      secureConfig: 'provider'
     });
   }
 }

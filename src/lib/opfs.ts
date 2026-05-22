@@ -2,7 +2,6 @@ export async function saveVectorToOPFS(id: string, vector: Float32Array) {
   try {
     const root = await navigator.storage.getDirectory();
     const fileHandle = await root.getFileHandle(`${id}.vec`, { create: true });
-    // @ts-ignore - createWritable is web standard but might lack TS types depending on version
     const writable = await fileHandle.createWritable();
     await writable.write(vector);
     await writable.close();

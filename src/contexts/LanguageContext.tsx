@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { translations, Language } from '../i18n/translations';
 import { db } from '../lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';

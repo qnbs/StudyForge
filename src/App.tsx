@@ -14,6 +14,8 @@ import { BottomNav } from './components/BottomNav';
 import { Search } from 'lucide-react';
 import type { WorkflowPhase } from './types';
 import { initializeDatabase } from './lib/db';
+import { Toaster } from 'sonner';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 export default function App() {
   const [activePhase, setActivePhase] = useState<WorkflowPhase>('planning');
@@ -65,6 +67,7 @@ export default function App() {
 
   return (
     <div className="flex h-[100dvh] w-full bg-slate-50 text-slate-900 font-sans overflow-hidden select-none">
+      <Toaster position="top-right" richColors closeButton />
       <CommandPalette 
         onNavigate={setActivePhase} 
         isOpen={isCommandPaletteOpen}
@@ -97,13 +100,15 @@ export default function App() {
         </header>
 
         <div className="overflow-y-auto flex-1 p-4 md:p-8 lg:p-12 bg-slate-50/50 pb-24 md:pb-12">
-          {renderActivePhase()}
+          <ErrorBoundary>
+            {renderActivePhase()}
+          </ErrorBoundary>
         </div>
 
         <footer className="h-10 border-t border-slate-200 bg-slate-50 hidden md:flex items-center px-6 justify-between flex-shrink-0">
           <div className="flex items-center gap-4 text-[11px] text-slate-500 font-medium">
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+              <span className="w-2 h-2 rounded-full bg-indigo-500" aria-label="System status stable"></span>
               <span>Encryption: AES-256 (Local Only)</span>
             </div>
             <div className="flex items-center gap-1.5">

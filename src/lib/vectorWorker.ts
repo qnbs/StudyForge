@@ -4,18 +4,18 @@ import { pipeline, env } from '@xenova/transformers';
 env.allowLocalModels = false;
 env.useBrowserCache = true;
 
-let extractor: any = null;
+let extractor: unknown = null;
 
 async function getExtractor() {
   if (!extractor) {
     // using a lightweight embedding model
     extractor = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', {
-      progress_callback: (info: any) => {
+      progress_callback: (info: unknown) => {
         self.postMessage({ type: 'progress', data: info });
       }
     });
   }
-  return extractor;
+  return extractor as (...args: unknown[]) => Promise<{ data: Float32Array }>;
 }
 
 self.onmessage = async (event) => {
@@ -35,10 +35,10 @@ self.onmessage = async (event) => {
           vector: output.data
         }
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       self.postMessage({
         type: 'error',
-        payload: { error: err.message }
+        payload: { error: err instanceof Error ? err.message : String(err) }
       });
     }
   }

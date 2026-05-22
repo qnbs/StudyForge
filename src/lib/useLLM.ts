@@ -1,5 +1,7 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { CreateWebWorkerMLCEngine, InitProgressReport, InitProgressCallback } from "@mlc-ai/web-llm";
+
+import type { WebWorkerMLCEngine } from "@mlc-ai/web-llm";
 
 export function useLLM() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -7,7 +9,7 @@ export function useLLM() {
   const [progress, setProgress] = useState<InitProgressReport | null>(null);
   
   // Use CreateWebWorkerMLCEngine which returns a Promise<WebWorkerMLCEngine>
-  const engineRef = useRef<any>(null);
+  const engineRef = useRef<WebWorkerMLCEngine | null>(null);
 
   const loadModel = async (modelId: string = "Llama-3.2-1B-Instruct-q4f16_1-MLC", customProgressCb?: InitProgressCallback) => {
     if (isLoading || isLoaded) return;
@@ -44,7 +46,7 @@ export function useLLM() {
   const generate = async (prompt: string, systemPrompt?: string): Promise<string> => {
     if (!engineRef.current) throw new Error("Model not loaded");
     
-    const messages = [];
+    const messages: Array<{ role: "system" | "user", content: string }> = [];
     if (systemPrompt) {
         messages.push({ role: "system", content: systemPrompt });
     }
@@ -62,7 +64,7 @@ export function useLLM() {
   const generateStream = async (prompt: string, systemPrompt?: string, onUpdate?: (text: string) => void): Promise<string> => {
     if (!engineRef.current) throw new Error("Model not loaded");
     
-    const messages = [];
+    const messages: Array<{ role: "system" | "user", content: string }> = [];
     if (systemPrompt) {
         messages.push({ role: "system", content: systemPrompt });
     }

@@ -1,6 +1,7 @@
-import { Bot, Search, FileSymlink, Sparkles, Plus, Loader2, Send } from 'lucide-react';
+import { Bot, Sparkles, Loader2, Send } from 'lucide-react';
 import { useState } from 'react';
 import { useLLM } from '../lib/useLLM';
+import { toast } from 'sonner';
 
 export function RightPanel() {
   const { isLoaded, isLoading, progress, loadModel, generateStream } = useLLM();
@@ -13,12 +14,11 @@ export function RightPanel() {
     
     if (!isLoaded && !isLoading) {
        await loadModel('Llama-3.2-1B-Instruct-q4f16_1-MLC');
-       // Don't return, let it proceed once loaded
     }
     
     // We defer the message sending if we're waiting for the model
     if (isLoading) {
-        alert("Model is currently downloading/loading. Please wait...");
+        toast.info("Model is currently downloading/loading. Please wait...");
         return;
     }
 
@@ -39,11 +39,11 @@ export function RightPanel() {
               return newMsgs;
           });
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
       setMessages(prev => {
           const newMsgs = [...prev];
-          newMsgs[newMsgs.length - 1].content = `Error: ${err.message}`;
+          newMsgs[newMsgs.length - 1].content = `Error: ${err instanceof Error ? err.message : String(err)}`;
           return newMsgs;
       });
     } finally {

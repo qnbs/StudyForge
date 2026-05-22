@@ -1,4 +1,4 @@
-import { GripVertical, Plus, Target, Sparkles } from 'lucide-react';
+import { GripVertical, Plus, Sparkles } from 'lucide-react';
 
 export function ElaborationPhase() {
   const outline = [

@@ -1,4 +1,4 @@
-import { Lightbulb, BookOpen, PenTool, Settings, Library, Bot, Search, Menu, ListTree, HelpCircle } from 'lucide-react';
+import { Lightbulb, BookOpen, PenTool, Settings, Library, Bot, Menu, ListTree, HelpCircle } from 'lucide-react';
 import type { WorkflowPhase } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useState } from 'react';

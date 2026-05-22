@@ -1,11 +1,9 @@
-import { Search, Database, Filter, ChevronRight, FileText } from 'lucide-react';
+import { Search, Database, Filter, FileText } from 'lucide-react';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 
 export function ResearchPhase() {
-  const mockSources = [
-    { title: "Local-first software: you own your data, in spite of the cloud", authors: "Kleppmann et al.", year: 2019, type: "PDF" },
-    { title: "Privacy-Preserving AI in Browser Environments", authors: "Chen, M., et al.", year: 2025, type: "Journal" },
-    { title: "Evaluating WebAssembly for High-Performance Client-Side Computing", authors: "Smith, J.", year: 2024, type: "Conference" }
-  ];
+  const sources = useLiveQuery(() => db.sources.toArray()) || [];
 
   return (
     <div className="max-w-5xl mx-auto space-y-4 md:space-y-6 h-full flex flex-col animate-in fade-in duration-500">
@@ -23,7 +21,7 @@ export function ResearchPhase() {
             className="w-full bg-white border border-slate-200 rounded-xl py-3 pl-10 pr-4 text-sm md:text-base text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
         </div>
-        <button className="flex justify-center items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-3 sm:py-2 rounded-xl shadow-sm hover:bg-slate-50 text-sm font-medium">
+        <button className="flex justify-center items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-3 sm:py-2 rounded-xl shadow-sm hover:bg-slate-50 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
           <Filter className="w-4 h-4" />
           Filters
         </button>
@@ -38,29 +36,33 @@ export function ResearchPhase() {
               Local Vector Store
             </h2>
             <span className="text-xs bg-slate-200 text-slate-600 px-2 py-1 rounded-full font-medium">
-              34 items
+              {sources.length} items
             </span>
           </div>
           <div className="overflow-y-auto flex-1 p-2 space-y-1">
-            {mockSources.map((source, idx) => (
-              <div key={idx} className="p-3 hover:bg-slate-50 rounded-lg cursor-pointer border border-transparent hover:border-slate-200 flex items-start gap-3 transition-colors">
-                <div className="bg-red-50 text-red-600 p-2 rounded-md shrink-0">
-                  <FileText className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-slate-900 leading-tight md:leading-snug">{source.title}</h3>
-                  <p className="text-xs text-slate-500 mt-1">{source.authors} • {source.year}</p>
-                </div>
-              </div>
-            ))}
+            {sources.length === 0 ? (
+               <div className="p-4 text-center text-sm text-slate-500 mt-10">No sources found. Add PDFs in the Library phase.</div>
+            ) : (
+                sources.map((source, idx) => (
+                  <div key={idx} className="p-3 hover:bg-slate-50 rounded-lg cursor-pointer border border-transparent hover:border-slate-200 flex items-start gap-3 transition-colors">
+                    <div className="bg-red-50 text-red-600 p-2 rounded-md shrink-0 border border-red-100">
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-slate-900 leading-tight md:leading-snug line-clamp-2" dangerouslySetInnerHTML={{ __html: source.title }}></h3>
+                      <p className="text-xs text-slate-500 mt-1">{source.authors.join(', ')} • {source.year}</p>
+                    </div>
+                  </div>
+                ))
+            )}
           </div>
         </div>
 
         {/* Source Detail Preview */}
         <div className="w-full md:w-1/2 lg:w-7/12 bg-slate-50 p-6 md:p-8 flex items-center justify-center text-center flex-1">
           <div className="max-w-xs space-y-3 md:space-y-4">
-            <div className="bg-white p-3 md:p-4 rounded-full inline-block shadow-sm mb-1 md:mb-2">
-              <FileText className="w-6 h-6 md:w-8 md:h-8 text-slate-400" />
+            <div className="bg-white p-3 md:p-4 rounded-full inline-block shadow-sm mb-1 md:mb-2 text-slate-400">
+              <Database className="w-6 h-6 md:w-8 md:h-8" />
             </div>
             <h3 className="text-base md:text-lg font-medium text-slate-900">Select a source</h3>
             <p className="text-xs md:text-sm text-slate-500">

@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   BookOpen,
-  FileText,
   Lightbulb,
   ListTree,
   PenTool,
@@ -46,7 +45,7 @@ export function Sidebar({ activePhase, onPhaseChange }: SidebarProps) {
           <button
             key={phase.id}
             onClick={() => onPhaseChange(phase.id)}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded transition-colors text-sm ${
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
               activePhase === phase.id
                 ? 'text-indigo-400 bg-indigo-500/10 font-medium'
                 : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
@@ -63,7 +62,7 @@ export function Sidebar({ activePhase, onPhaseChange }: SidebarProps) {
         <div className="space-y-1">
           <button 
             onClick={() => onPhaseChange('library')}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded transition-colors text-sm ${
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
               activePhase === 'library'
                 ? 'text-indigo-400 bg-indigo-500/10 font-medium'
                 : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
@@ -80,7 +79,7 @@ export function Sidebar({ activePhase, onPhaseChange }: SidebarProps) {
         <div className="space-y-1">
           <button 
             onClick={() => onPhaseChange('agents')}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded transition-colors text-sm ${
+            className={`w-full flex items-center gap-3 px-3 py-2 rounded transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
               activePhase === 'agents'
                 ? 'text-indigo-400 bg-indigo-500/10 font-medium'
                 : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
@@ -95,7 +94,7 @@ export function Sidebar({ activePhase, onPhaseChange }: SidebarProps) {
       <div className="p-4 bg-slate-950/50 mt-auto hidden md:block">
         <div className="flex items-center justify-between mb-2">
           <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">Local Engine Status</span>
-          <span className="flex h-2 w-2 rounded-full bg-green-400"></span>
+          <span className="flex h-2 w-2 rounded-full bg-green-400" aria-label="System active"></span>
         </div>
         <div className="text-xs text-slate-300">Phi-4 (4-bit) Quantized</div>
         <div className="w-full bg-slate-800 h-1 rounded-full mt-2">
@@ -107,7 +106,7 @@ export function Sidebar({ activePhase, onPhaseChange }: SidebarProps) {
       <div className="px-4 py-3 border-t border-slate-800/50 flex flex-col gap-1">
         <button 
           onClick={() => onPhaseChange('settings')}
-          className={`flex w-full items-center gap-3 px-3 py-2 rounded transition-colors text-sm ${
+          className={`flex w-full items-center gap-3 px-3 py-2 rounded transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
             activePhase === 'settings'
               ? 'text-indigo-400 bg-indigo-500/10 font-medium'
               : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
@@ -118,7 +117,7 @@ export function Sidebar({ activePhase, onPhaseChange }: SidebarProps) {
         </button>
         <button 
           onClick={() => onPhaseChange('help')}
-          className={`flex w-full items-center gap-3 px-3 py-2 rounded transition-colors text-sm ${
+          className={`flex w-full items-center gap-3 px-3 py-2 rounded transition-colors text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
             activePhase === 'help'
               ? 'text-indigo-400 bg-indigo-500/10 font-medium'
               : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'

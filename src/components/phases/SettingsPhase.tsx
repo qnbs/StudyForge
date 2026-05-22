@@ -1,4 +1,4 @@
-import { Settings2, MonitorSmartphone, Database, Trash2, ShieldCheck, Globe, Cpu, Download, Upload, Moon, Sun, Lock } from 'lucide-react';
+import { MonitorSmartphone, Database, Trash2, ShieldCheck, Globe, Cpu, Download, Upload, Moon, Sun, Lock } from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useLiveQuery } from 'dexie-react-hooks';

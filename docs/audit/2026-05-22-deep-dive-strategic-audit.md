@@ -44,6 +44,9 @@ To transition StudyForge from a polished mockup to a functional product, the fol
 ### Phase 4: Academic Editor (COMPLETED)
 *   **Action:** Replace the current text block in `WritingPhase` with a fully featured `TipTap` editor, enabling complex LaTeX export parsing and inline RAG citation tracking.
 
+### Phase 5: UI Modularization & Robustness (COMPLETED)
+*   **Action:** Implement `react-error-boundary` and `sonner` for system stability and elegant user validation messages. Break down monolithic files (`LibraryPhase`, `AgentWorkshopPhase`, `WritingPhase`) into isolated, functional, modular components. Make accessibility adjustments targeting `aria` roles and keyboard navigability across the layout.
+
 ## 4. UI/UX & Product Strategy Refinements
 
 *   **OAuth Flow UX:** The Mendeley tab currently has a dummy button. A real OAuth implementation in an offline PWA requires a careful redirect strategy or a lightweight proxy if CORS/PKCE is not supported by the provider.

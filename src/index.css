@@ -13,3 +13,9 @@
     @apply antialiased text-slate-900 bg-slate-50;
   }
 }
+
+@layer utilities {
+  .ProseMirror:focus {
+    outline: none !important;
+  }
+}

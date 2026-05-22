@@ -158,13 +158,30 @@ export function SettingsPhase() {
                    <label className="block text-sm font-medium text-slate-900 mb-1">{t('settings.defaultModel')}</label>
                    <p className="text-xs text-slate-500 mb-3">{t('settings.defaultModelDesc')}</p>
                    <select 
-                     value={globalSettings?.modelLimitConfig || 'default'}
-                     onChange={(e) => handleUpdateSetting('modelLimitConfig', e.target.value)}
-                     className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                     <option value="default">Phi-4 (4-bit Quantized) - Default</option>
-                     <option value="high">Llama 3.2 8B - High Quality</option>
-                     <option value="balanced">Gemma 3 - Balanced</option>
+                     value={['low', 'medium', 'high'].includes(globalSettings?.modelLimitConfig || '') ? globalSettings?.modelLimitConfig : 'custom'}
+                     onChange={(e) => {
+                         if (e.target.value !== 'custom') {
+                             handleUpdateSetting('modelLimitConfig', e.target.value);
+                         } else {
+                             handleUpdateSetting('modelLimitConfig', '');
+                         }
+                     }}
+                     className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-3">
+                     <option value="low">Llama 3.2 1B (Fast, Low End) - ~1 GB</option>
+                     <option value="medium">Phi 3.5 Mini (Recommended) - ~2.5 GB</option>
+                     <option value="high">Llama 3.1 8B (High Quality) - ~5 GB</option>
+                     <option value="custom">Custom GGUF URL...</option>
                    </select>
+                   <div className={`${['low', 'medium', 'high'].includes(globalSettings?.modelLimitConfig || '') ? 'hidden' : 'block'}`}>
+                      <input 
+                         type="url"
+                         placeholder="https://huggingface.co/.../*.gguf"
+                         value={(!['low', 'medium', 'high'].includes(globalSettings?.modelLimitConfig || '')) ? globalSettings?.modelLimitConfig || '' : ''}
+                         onChange={(e) => handleUpdateSetting('modelLimitConfig', e.target.value)}
+                         className="w-full bg-white border border-slate-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+                      />
+                      <p className="text-xs text-slate-400 mt-1">Paste a direct link to any .gguf file (e.g. from HuggingFace). K-Quants (Q4_K_M etc.) are fully supported!</p>
+                   </div>
                  </div>
                  
                  <div>

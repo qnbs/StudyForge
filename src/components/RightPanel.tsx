@@ -15,7 +15,7 @@ export function RightPanel() {
     if (!inputValue.trim()) return;
     
     if (!isLoaded && !isLoading) {
-       await loadModel('Llama-3.2-1B-Instruct-q4f16_1-MLC');
+       await loadModel();
     }
     
     // We defer the message sending if we're waiting for the model

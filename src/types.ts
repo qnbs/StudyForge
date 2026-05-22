@@ -18,9 +18,14 @@ export interface Document {
 
 export interface DocumentChunk {
   id: string;
-  sourceId: string;
-  chunkIndex: number;
+  documentId: string;
+  sourceId?: string;
+  chunkIndex?: number;
   text: string;
+  embeddingId: string;   // reference to OPFS
+  vectorLength: number;
+  pageNumbers?: number[];
+  section?: string;
 }
 
 export interface Source {

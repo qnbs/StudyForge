@@ -4,6 +4,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
 import { toast } from 'sonner';
+import { ragService } from '../../lib/rag/ragService';
 
 export function LocalLibrary() {
   const { t } = useLanguage();
@@ -17,84 +18,21 @@ export function LocalLibrary() {
     if (!file) return;
 
     setIsProcessingPdf(true);
-    setProcessingStatus(`Extracting text from ${file.name}...`);
+    setProcessingStatus(`Processing ${file.name}...`);
 
     try {
-      const { extractTextFromPDF, chunkText } = await import('../../lib/pdfParser');
-      const { saveVectorToOPFS } = await import('../../lib/opfs');
+      await ragService.ingestSource(
+        file,
+        file.name,
+        ['Unknown (Local PDF)'],
+        new Date().getFullYear()
+      );
 
-      const text = await extractTextFromPDF(file);
-      setProcessingStatus(`Chunking text...`);
-      const chunks = chunkText(text);
-
-      const sourceId = crypto.randomUUID();
-      const newSource = {
-        id: sourceId,
-        title: file.name,
-        authors: ['Unknown (Local PDF)'],
-        year: new Date().getFullYear(),
-        type: 'pdf' as const,
-        addedAt: new Date().toISOString(),
-        isVectorized: true
-      };
-
-      await db.sources.add(newSource);
-
-      setProcessingStatus(`Loading ML model & vectorizing ${chunks.length} chunks...`);
-
-      const worker = new Worker(new URL('../../lib/vectorWorker.ts', import.meta.url), {
-        type: 'module'
-      });
-
-      let completedChunks = 0;
-
-      worker.onmessage = async (event) => {
-        const { type, payload, data } = event.data;
-        if (type === 'progress') {
-          // Model loading progress
-          if (data && data.status) {
-            setProcessingStatus(`Loading Model: ${data.status}`);
-          }
-        } else if (type === 'complete') {
-          const { chunkId, vector } = payload;
-          await saveVectorToOPFS(chunkId, vector);
-          completedChunks++;
-          setProcessingStatus(`Vectorized ${completedChunks}/${chunks.length} chunks...`);
-
-          if (completedChunks === chunks.length) {
-            setIsProcessingPdf(false);
-            setProcessingStatus('');
-            toast.success('PDF successfully ingested and vectorized locally!');
-            worker.terminate();
-          }
-        } else if (type === 'error') {
-          console.error('Vector Worker Error:', payload.error);
-          toast.error('Error during vectorization: ' + payload.error);
-          setIsProcessingPdf(false);
-          setProcessingStatus('');
-          worker.terminate();
-        }
-      };
-
-      // save chunks to db and queue for vectorization
-      for (let i = 0; i < chunks.length; i++) {
-        const chunkId = `${sourceId}_${i}`;
-        await db.documentChunks.add({
-          id: chunkId,
-          sourceId,
-          chunkIndex: i,
-          text: chunks[i]
-        });
-
-        worker.postMessage({
-          type: 'embed',
-          payload: { text: chunks[i], chunkId }
-        });
-      }
-
+      toast.success('PDF successfully ingested and vectorized locally!');
     } catch (err) {
       console.error(err);
-      toast.error('Error parsing PDF.');
+      toast.error('Error processing PDF.');
+    } finally {
       setIsProcessingPdf(false);
       setProcessingStatus('');
     }

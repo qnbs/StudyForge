@@ -12,13 +12,15 @@ export class StudyForgeDatabase extends Dexie {
 
   constructor() {
     super('StudyForgeDB');
-    this.version(3).stores({
+    this.version(4).stores({
       documents: 'id, title, lastEdited', 
       sources: 'id, title, year, type',
       agents: 'id, name, role',
       settings: 'id',
-      documentChunks: 'id, sourceId',
+      documentChunks: 'id, sourceId, documentId, embeddingId',
       secureConfig: 'provider'
+    }).upgrade(() => {
+       // Optional: Add upgrade logic here if needed
     });
   }
 }

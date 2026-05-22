@@ -80,7 +80,18 @@ export class RAGService {
     
     this.embeddingWorker.addEventListener('message', progressHandler);
 
-    const chunkPromises = chunks.map((chunk) => {
+    const concurrency = 5;
+    const executeInBatches = async <T, R>(items: T[], batchSize: number, fn: (item: T) => Promise<R>): Promise<R[]> => {
+      const results: R[] = [];
+      for (let i = 0; i < items.length; i += batchSize) {
+        const batch = items.slice(i, i + batchSize);
+        const batchResults = await Promise.all(batch.map(fn));
+        results.push(...batchResults);
+      }
+      return results;
+    };
+
+    await executeInBatches(chunks, concurrency, (chunk) => {
       return new Promise<DocumentChunk>((resolve, reject) => {
         const id = chunk.id;
         
@@ -96,7 +107,7 @@ export class RAGService {
             const dbChunk: DocumentChunk = {
               id,
               documentId,
-              sourceId: documentId, // for sources, it's the sourceId
+              sourceId: documentId,
               chunkIndex: chunk.chunkIndex,
               text: chunk.text,
               embeddingId,
@@ -107,9 +118,13 @@ export class RAGService {
             completedChunks++;
             if (onProgress) onProgress(`Vectorized ${completedChunks}/${chunks.length} chunks...`);
             resolve(dbChunk);
-          } else if (type === 'error') {
+          } else if (type === 'error' && payload?.chunkId === id) { // ensure the error corresponds to this chunk if possible, but worker error might lack chunkId if it failed outside
             this.embeddingWorker!.removeEventListener('message', messageHandler);
             reject(new Error(payload.error));
+          } else if (type === 'error' && !payload?.chunkId) {
+             // global worker error
+             this.embeddingWorker!.removeEventListener('message', messageHandler);
+             reject(new Error(payload.error));
           }
         };
 
@@ -118,7 +133,6 @@ export class RAGService {
       });
     });
 
-    await Promise.all(chunkPromises);
     this.embeddingWorker.removeEventListener('message', progressHandler);
   }
 

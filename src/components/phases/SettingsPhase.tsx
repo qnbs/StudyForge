@@ -1,5 +1,5 @@
-import { MonitorSmartphone, Database, Trash2, ShieldCheck, Globe, Cpu, Download, Upload, Moon, Sun, Lock } from 'lucide-react';
-import { useState } from 'react';
+import { MonitorSmartphone, Database, Trash2, ShieldCheck, Globe, Cpu, Download, Upload, Moon, Sun, Lock, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
@@ -9,8 +9,32 @@ import { motion, AnimatePresence } from 'motion/react';
 export function SettingsPhase() {
   const { language, setLanguage, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'language' | 'theme' | 'model' | 'storage' | 'privacy'>('language');
+  const [gpuInfo, setGpuInfo] = useState<{ supported: boolean; memoryGB: number | null }>({ supported: false, memoryGB: null });
 
   const globalSettings = useLiveQuery(() => db.settings.get('global'));
+  
+  useEffect(() => {
+    async function checkGpu() {
+      if (!navigator.gpu) {
+        setGpuInfo({ supported: false, memoryGB: null });
+        return;
+      }
+      try {
+        const adapter = await navigator.gpu.requestAdapter({ powerPreference: "high-performance" });
+        if (!adapter) {
+          setGpuInfo({ supported: false, memoryGB: null });
+          return;
+        }
+        const device = await adapter.requestDevice();
+        const mem = (device.limits.maxBufferSize ?? 0) / (1024 ** 3);
+        setGpuInfo({ supported: true, memoryGB: mem > 0 ? parseFloat(mem.toFixed(2)) : null });
+      } catch {
+        // Fallback silently if device query fails
+        setGpuInfo({ supported: false, memoryGB: null });
+      }
+    }
+    checkGpu();
+  }, []);
   
   const handleUpdateSetting = async (key: string, value: string) => {
     if (globalSettings) {
@@ -188,6 +212,21 @@ export function SettingsPhase() {
                 </h2>
               </div>
               <div className="p-6 space-y-8">
+                 {/* GPU Support Banner */}
+                 <div className={`p-4 rounded-xl border flex gap-4 \${gpuInfo.supported ? 'bg-emerald-50 border-emerald-100' : 'bg-red-50 border-red-100'}`}>
+                    {gpuInfo.supported ? <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" /> : <AlertTriangle className="w-6 h-6 text-red-600 shrink-0" />}
+                    <div>
+                      <h3 className={`font-semibold text-sm \${gpuInfo.supported ? 'text-emerald-900' : 'text-red-900'}`}>
+                         {gpuInfo.supported ? 'WebGPU Hardware Acceleration Active' : 'WebGPU Not Detected'}
+                      </h3>
+                      <p className={`text-xs mt-1 \${gpuInfo.supported ? 'text-emerald-700' : 'text-red-700'}`}>
+                         {gpuInfo.supported 
+                            ? `Your device is compatible with local AI inference. \${gpuInfo.memoryGB ? 'Detected max buffer size supports ~' + (gpuInfo.memoryGB * 4).toFixed(1) + 'GB Total VRAM.' : ''}`
+                            : 'Local models will fallback to the CPU (WASM) which is significantly slower. Please use Chrome 113+ or Edge 113+ and ensure hardware acceleration is enabled.'}
+                      </p>
+                    </div>
+                 </div>
+
                  <div>
                    <label className="block text-sm font-medium text-slate-900 mb-1">{t('settings.defaultModel')}</label>
                    <p className="text-xs text-slate-500 mb-3">{t('settings.defaultModelDesc')}</p>

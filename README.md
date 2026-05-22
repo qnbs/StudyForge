@@ -45,6 +45,8 @@ StudyForge is not just an application; it is an academic operating system carefu
 * **Progressive Web App (PWA)**: Fully installable capabilities complete with service-worker driven offline caching for crucial fonts, scripts, and navigation routing, ensuring operation without any internet connection.
 * **Elaboration & Writing Phases**: Distinct structural phases guiding you from literature review and ideation, straight to structured prose drafting.
 * **Dynamic Agent Workshop**: Sculpt, refine, and deploy customized system-prompted agents directly tailored to specific academic tasks. Includes real-time search filtering and hover-triggered prompt snippet popovers for the community template gallery.
+* **Exports**: Robustly export your active works to standard `.md`, `.html`, `.txt`, and structural LaTeX boilerplate `.tex` natively.
+* **Secure Zotero Hub Ecosystem**: Directly pull your established bibliographic databases into the local execution sphere seamlessly using verified, encrypted credential handling and immediate direct API synchronization.
 * **Internationalization (i18n)**: Out-of-the-box support for multiple languages (English and German) with scalable dictionary structures.
 * **High-Fidelity Animations**: Integrating `motion/react` for buttery-smooth layout transitions and staggered phase loaders without blocking the main engine thread.
 

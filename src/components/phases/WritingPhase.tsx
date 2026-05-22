@@ -1,19 +1,32 @@
-import { Settings2 } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
 import { useLLM } from '../../lib/useLLM';
 import { toast } from 'sonner';
 import { EditorToolbar } from '../writing/EditorToolbar';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { motion, AnimatePresence } from 'motion/react';
 
 export function WritingPhase() {
   const [activeDocId, setActiveDocId] = useState<string | null>(null);
   const { isLoaded, isLoading, loadModel, generate } = useLLM();
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
   const { t } = useLanguage();
+  const exportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) {
+        setShowExportMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Load a single active document or create one
   useEffect(() => {
@@ -78,15 +91,48 @@ export function WritingPhase() {
     return <div className="h-full flex items-center justify-center text-slate-500">{t('writing.loading')}</div>;
   }
 
+  const handleExport = (format: 'html' | 'md' | 'txt' | 'latex') => {
+    let content = '';
+    let mimeType = 'text/plain';
+    let extension = format;
+
+    if (format === 'html') {
+      content = `<!DOCTYPE html>\n<html>\n<head>\n<title>${activeDoc.title}</title>\n</head>\n<body>\n${editor.getHTML()}\n</body>\n</html>`;
+      mimeType = 'text/html';
+    } else if (format === 'txt') {
+      content = editor.getText();
+      mimeType = 'text/plain';
+    } else if (format === 'md') {
+      // Basic markdown parser using the text format, ideally we'd use tiptap markdown extension but this works for basic text.
+      // Replacing HTML tags very naively or export raw text. Let's export just raw text for now if no parser available.
+      content = `# ${activeDoc.title}\n\n${editor.getText()}`;
+      mimeType = 'text/markdown';
+    } else if (format === 'latex') {
+      content = `\\documentclass{article}\n\\title{${activeDoc.title}}\n\\begin{document}\n\\maketitle\n\n${editor.getText()}\n\\end{document}`;
+      mimeType = 'application/x-tex';
+      extension = 'tex';
+    }
+
+    const blob = new Blob([content], { type: `${mimeType};charset=utf-8;` });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${activeDoc.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${extension}`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setShowExportMenu(false);
+    toast.success(`Exported as .${extension}`);
+  };
+
   const handleRephrase = async () => {
     if (!isLoaded && !isLoading) {
-      toast.info(t('writing.initML'));
+      toast.info(t('writing.initML') || 'Initializing ML engine...');
       await loadModel();
-      // wait for it
     }
 
     if (isLoading) {
-      toast.info(t('writing.modelLoading'));
+      toast.info(t('writing.modelLoading') || 'Model is still loading, please wait.');
       return;
     }
 
@@ -94,7 +140,7 @@ export function WritingPhase() {
     const selectedText = editor.state.doc.textBetween(selection.from, selection.to, ' ');
 
     if (!selectedText) {
-      toast.warning(t('writing.selectText'));
+      toast.warning(t('writing.selectText') || 'Select text to rephrase.');
       return;
     }
 
@@ -103,10 +149,10 @@ export function WritingPhase() {
       const response = await generate(`Rephrase and improve the academic tone of the following text: "${selectedText}". Return ONLY the rewritten text, nothing else, no quotes.`, "You are an expert academic editor.");
       
       editor.chain().focus().deleteSelection().insertContent(response).run();
-      toast.success(t('writing.rephraseSuccess'));
+      toast.success(t('writing.rephraseSuccess') || 'Rephrased successfully.');
     } catch (err) {
       console.error(err);
-      toast.error(t('writing.rephraseError'));
+      toast.error(t('writing.rephraseError') || 'Failed to rephrase text.');
     } finally {
       setIsGenerating(false);
     }
@@ -127,11 +173,42 @@ export function WritingPhase() {
             {activeDoc.wordCount} {t('writing.words')} • {t('writing.lastEdited')} {new Date(activeDoc.lastEdited).toLocaleTimeString()}
           </p>
         </div>
-        <div className="flex items-center gap-3 self-start md:self-auto">
-          <span className="text-[10px] md:text-xs font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">{t('writing.autosaved')}</span>
-          <button className="text-slate-400 hover:text-slate-600 p-2 bg-white rounded-lg border border-slate-200 md:border-transparent md:bg-transparent shadow-sm md:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">
-            <Settings2 className="w-4 h-4 md:w-5 md:h-5" />
+        <div className="flex items-center gap-3 self-start md:self-auto relative" ref={exportRef}>
+          <span className="text-[10px] md:text-xs font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 hidden sm:inline-block">{t('writing.autosaved')}</span>
+          <button 
+            onClick={() => setShowExportMenu(!showExportMenu)}
+            className="flex items-center gap-2 text-slate-700 hover:text-indigo-600 px-3 py-2 bg-white rounded-lg border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 font-medium text-sm transition-colors">
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">Export</span>
           </button>
+          
+          <AnimatePresence>
+            {showExportMenu && (
+              <motion.div 
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 5 }}
+                transition={{ duration: 0.1 }}
+                className="absolute right-0 top-full mt-2 w-48 bg-white border border-slate-200 shadow-xl rounded-xl z-50 overflow-hidden"
+              >
+                <div className="p-1">
+                  <p className="px-3 py-1.5 text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Formats</p>
+                  <button onClick={() => handleExport('md')} className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-lg group flex items-center justify-between">
+                    Markdown <span className="text-[10px] font-mono text-slate-400 group-hover:text-indigo-400">.md</span>
+                  </button>
+                  <button onClick={() => handleExport('html')} className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-lg group flex items-center justify-between">
+                    HTML Document <span className="text-[10px] font-mono text-slate-400 group-hover:text-indigo-400">.html</span>
+                  </button>
+                  <button onClick={() => handleExport('txt')} className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-lg group flex items-center justify-between">
+                    Plain Text <span className="text-[10px] font-mono text-slate-400 group-hover:text-indigo-400">.txt</span>
+                  </button>
+                  <button onClick={() => handleExport('latex')} className="w-full text-left px-3 py-2 text-sm text-slate-700 hover:bg-slate-50 hover:text-indigo-600 rounded-lg group flex items-center justify-between border-t border-slate-100 mt-1 pt-2">
+                    LaTeX Structure <span className="text-[10px] font-mono text-slate-400 group-hover:text-indigo-400">.tex</span>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 

@@ -1,6 +1,6 @@
 # Setup & Initialization Guide
 
-StudyForge leverages cutting-edge web APIs such as WebGPU, OPFS, and WASM to run heavy machine learning workloads directly in your browser.
+StudyForge leverages cutting-edge web APIs such as WebGPU, OPFS, and WASM to run heavy machine learning workloads directly in your browser. It includes automatic hardware detection and a graceful degradation pathway to standard CPU WASM if a capable GPU is unvailable.
 
 ![StudyForge UI Preview](https://via.placeholder.com/800x450?text=StudyForge+Hero+Screenshot)
 
@@ -61,9 +61,9 @@ The main drawback of WebGPU is its rigid memory allocation behavior. If you allo
 - **Firefox/Safari**: Currently strictly experimental. We recommend Chromium. You will fallback to `WASM (CPU)` on Firefox which implies a 5x slowdown.
 
 ### 📄 Handling Giant PDFs
-When uploading heavy documents (400+ pages), the parse chunking and MiniLM-L6 embedding pipeline may lag the main thread.
-- **The Process:** The app routes PDF parsing bounding boxes mapping to `pdfWorker.ts`, and embeddings to `embeddingWorker.ts`. 
-- **OOM on PDF ingestion:** If the tab crashes during ingestion, break the PDF into chapters before uploading. Web limits on IndexedDB storage string allocations can sometimes trigger limits.
+When uploading heavy documents (400+ pages), the parse chunking and MiniLM-L6 embedding pipeline routes tokens safely.
+- **The Process:** The app routes PDF parsing bounding boxes mapping to `pdfWorker.ts`, and embeddings to `embeddingWorker.ts`. We process chunks concurrently in intelligent, rate-limited batches (`concurrency=5`) to explicitly prevent workers queueing up to OOM errors.
+- **Limits:** Extremely large PDFs operate significantly better now due to the controlled asynchronous event pooling.
 
 ## First Time Load Experience
 

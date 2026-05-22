@@ -38,7 +38,7 @@ self.onmessage = async (event) => {
     } catch (err: unknown) {
       self.postMessage({
         type: 'error',
-        payload: { error: err instanceof Error ? err.message : String(err) }
+        payload: { chunkId: payload?.chunkId, error: err instanceof Error ? err.message : String(err) }
       });
     }
   }

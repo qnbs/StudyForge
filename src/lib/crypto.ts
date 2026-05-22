@@ -1,4 +1,4 @@
-const ITERATIONS = 100000;
+const ITERATIONS = 600000;
 const KEY_LENGTH = 256;
 
 export interface EncryptedApiKey {

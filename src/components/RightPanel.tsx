@@ -73,12 +73,12 @@ export function RightPanel() {
         {isLoading && progress && (
             <div className="mt-3">
                 <div className="flex justify-between text-[10px] text-slate-600 mb-1 font-mono">
-                    <span>{progress.text.split(']')[0]}]</span>
+                    <span>{progress.text || 'Loading...'}</span>
                 </div>
                 <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
                     <div 
                         className="bg-indigo-600 h-1.5 transition-all duration-300" 
-                        style={{ width: `${(progress.progress * 100).toFixed(1)}%` }}
+                        style={{ width: `${((progress.loaded / (progress.total || 1)) * 100).toFixed(1)}%` }}
                     />
                 </div>
             </div>

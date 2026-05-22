@@ -35,6 +35,10 @@ export function useLLM() {
 
       // Initialize Wllama
       if (!wllamaRef.current) {
+         if (!navigator.gpu) {
+            console.warn("WebGPU not detected - falling back to CPU (WASM). Expect slower performance.");
+            // We could also toast warning here.
+         }
          wllamaRef.current = new Wllama({ 
              default: "https://cdn.jsdelivr.net/npm/@wllama/wllama@3.1.1/esm",
          });

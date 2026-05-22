@@ -17,7 +17,8 @@ self.onmessage = async (event) => {
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
-        const pageText = content.items.map((item: { str?: string }) => item.str || '').join(' ');
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const pageText = content.items.map((item: any) => ('str' in item ? item.str : '')).join(' ');
         fullText += pageText + '\n';
         
         self.postMessage({ type: 'progress', data: { page: i, total: pdf.numPages } });

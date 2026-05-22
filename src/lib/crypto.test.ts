@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { deriveKey, encryptApiKey, decryptApiKey } from './crypto';
+import { encryptApiKey, decryptApiKey } from './crypto';
 
 // Vitest environment runs in jsdom/node, which comes with standard Web Crypto API in Node 19/20+.
 // We can use it directly.

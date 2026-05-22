@@ -57,9 +57,9 @@ export interface Settings {
   modelLimitConfig: string;
   zoteroConfig?: {
     userId: string;
-    apiKey: string;
+    apiKey?: string; // Opt out of DB plaintext, stored in Vault
   };
   mendeleyConfig?: {
-    accessToken: string;
+    accessToken?: string;
   };
 }

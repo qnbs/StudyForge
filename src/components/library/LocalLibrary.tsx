@@ -25,7 +25,8 @@ export function LocalLibrary() {
         file,
         file.name,
         ['Unknown (Local PDF)'],
-        new Date().getFullYear()
+        new Date().getFullYear(),
+        (msg) => setProcessingStatus(msg)
       );
 
       toast.success('PDF successfully ingested and vectorized locally!');

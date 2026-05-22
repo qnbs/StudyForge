@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Lock } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
 import { toast } from 'sonner';
+import { useSecureConfig } from '../../contexts/SecureConfigContext';
 
 export function ZoteroSync() {
   const globalSettings = useLiveQuery(() => db.settings.get('global'));
   const zoteroConfig = globalSettings?.zoteroConfig;
+  const { isUnlocked, saveApiKey, getApiKey, hasMasterPasswordSet } = useSecureConfig();
 
   const [zoteroUserId, setZoteroUserId] = useState('');
   const [zoteroApiKey, setZoteroApiKey] = useState('');
@@ -14,18 +16,41 @@ export function ZoteroSync() {
   useEffect(() => {
     if (zoteroConfig) {
       setZoteroUserId(zoteroConfig.userId || '');
-      setZoteroApiKey(zoteroConfig.apiKey || '');
     }
-  }, [zoteroConfig]);
+    // Only attempt to load the API key if the vault is unlocked
+    if (isUnlocked) {
+       getApiKey('zotero').then(key => {
+         if (key) setZoteroApiKey(key);
+       });
+    }
+  }, [zoteroConfig, isUnlocked, getApiKey]);
 
   const handleSaveZoteroConfig = async () => {
-    await db.settings.update('global', {
-      zoteroConfig: {
-        userId: zoteroUserId,
-        apiKey: zoteroApiKey
+    if (!hasMasterPasswordSet) {
+        toast.error("Please configure your Master Password in Settings first.");
+        return;
+    }
+    if (!isUnlocked) {
+        toast.error("Please unlock your Secure Vault in Settings to save API keys.");
+        return;
+    }
+
+    try {
+      // Remove apiKey from plaintext settings by overriding
+      await db.settings.update('global', {
+          zoteroConfig: {
+            userId: zoteroUserId
+          }
+      });
+
+      if (zoteroApiKey) {
+        await saveApiKey('zotero', zoteroApiKey);
       }
-    });
-    toast.success('Zotero credentials saved locally.');
+      toast.success('Zotero credentials saved securely in local vault.');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to save Zotero configuration securely.');
+    }
   };
 
   return (
@@ -39,6 +64,12 @@ export function ZoteroSync() {
           Sync your Zotero collections directly into your local database.
         </p>
         <div className="space-y-3 w-full">
+          {(!isUnlocked && hasMasterPasswordSet) && (
+            <p className="text-xs text-amber-600 bg-amber-50 rounded p-2 text-left mb-2">
+              <Lock className="w-3 h-3 inline mr-1" />
+              Vault locked. Unlock in settings to load or change API key.
+            </p>
+          )}
           <input 
             type="text" 
             placeholder="Zotero User ID" 
@@ -48,10 +79,11 @@ export function ZoteroSync() {
           />
           <input 
             type="password" 
-            placeholder="Zotero API Key" 
+            placeholder="Zotero API Key (Vault Encrypted)" 
             value={zoteroApiKey}
             onChange={(e) => setZoteroApiKey(e.target.value)}
-            className="w-full bg-slate-50 border border-slate-200 px-4 py-2.5 md:py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+            disabled={!isUnlocked && hasMasterPasswordSet}
+            className="w-full bg-slate-50 border border-slate-200 px-4 py-2.5 md:py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60" 
           />
           <button 
             onClick={handleSaveZoteroConfig}

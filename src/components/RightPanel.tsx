@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useLLM } from '../lib/useLLM';
 import { toast } from 'sonner';
 import { useLanguage } from '../contexts/LanguageContext';
+import { ragService } from '../lib/rag/ragService';
 
 export function RightPanel() {
   const { isLoaded, isLoading, progress, loadModel, generateStream } = useLLM();
@@ -31,7 +32,18 @@ export function RightPanel() {
     
     setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
-    const systemPrompt = t('chat.systemPrompt');
+    let systemPrompt = t('chat.systemPrompt');
+
+    try {
+      // Inject RAG Context
+      const results = await ragService.queryRAG(userMessage, 3);
+      if (results && results.length > 0) {
+          const contextParts = results.map(r => r.chunk.text).join('\n---\n');
+          systemPrompt += `\n\nUse the following extracted document context to inform your answer:\n\n${contextParts}`;
+      }
+    } catch (err) {
+      console.warn('RAG Query failed', err);
+    }
 
     try {
       await generateStream(userMessage, systemPrompt, (text) => {
@@ -119,12 +131,12 @@ export function RightPanel() {
                onChange={e => setInputValue(e.target.value)}
                onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
                placeholder={isLoaded ? t('chat.plhReady') : t('chat.plhInit')} 
-               disabled={!isLoaded && !isLoading}
+               disabled={isLoading}
                className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-3 pr-10 text-xs focus:ring-2 focus:ring-indigo-500 outline-none disabled:opacity-50"
              />
              <button 
                  onClick={handleSendMessage}
-                 disabled={isGenerating || (!isLoaded && !isLoading) || !inputValue.trim()}
+                 disabled={isGenerating || isLoading || !inputValue.trim()}
                  className="absolute right-1 w-8 h-8 flex items-center justify-center bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors"
              >
                  {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}

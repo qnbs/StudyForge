@@ -18,7 +18,7 @@ export class RAGService {
     }
   }
 
-  public async ingestSource(file: File, title: string, authors: string[], year: number): Promise<string> {
+  public async ingestSource(file: File, title: string, authors: string[], year: number, onProgress?: (msg: string) => void): Promise<string> {
     const sourceId = `src_${Date.now()}_${Math.random().toString(36).substring(7)}`;
 
     // Fallback if worker creation failed
@@ -27,13 +27,16 @@ export class RAGService {
     }
 
     return new Promise((resolve, reject) => {
-      this.pdfWorker!.onmessage = async (e) => {
+      const handler = async (e: MessageEvent) => {
         const { type, payload, data } = e.data;
         if (type === 'progress') {
-          console.log(`PDF Parsing Progress: ${data.page}/${data.total}`);
-        } else if (type === 'complete') {
+          const msg = `Parsing PDF: page ${data.page}/${data.total}`;
+          if (onProgress) onProgress(msg);
+          console.log(msg);
+        } else if (type === 'complete' && payload.documentId === sourceId) {
           try {
-            await this.processChunks(sourceId, payload.chunks);
+            this.pdfWorker!.removeEventListener('message', handler);
+            await this.processChunks(sourceId, payload.chunks, onProgress);
             
             // Save source metadata
             await db.sources.put({
@@ -51,16 +54,31 @@ export class RAGService {
             reject(err);
           }
         } else if (type === 'error') {
+          this.pdfWorker!.removeEventListener('message', handler);
           reject(new Error(payload.error));
         }
       };
 
+      this.pdfWorker!.addEventListener('message', handler);
       this.pdfWorker!.postMessage({ type: 'parse', payload: { file, documentId: sourceId } });
     });
   }
 
-  private async processChunks(documentId: string, chunks: Array<{id: string, chunkIndex: number, text: string}>) {
+  private async processChunks(documentId: string, chunks: Array<{id: string, chunkIndex: number, text: string}>, onProgress?: (msg: string) => void) {
     if (!this.embeddingWorker) throw new Error("Embedding worker not initialized");
+
+    let completedChunks = 0;
+    const progressHandler = (e: MessageEvent) => {
+      const { type, data } = e.data;
+      if (type === 'progress' && onProgress) {
+        // data.status, data.name, data.progress are provided by Transformers.js
+        if (data.status) {
+             onProgress(`Loading Model: ${data.status} ${data.progress ? `(${Math.round(data.progress)}%)` : ''}`);
+        }
+      }
+    };
+    
+    this.embeddingWorker.addEventListener('message', progressHandler);
 
     const chunkPromises = chunks.map((chunk) => {
       return new Promise<DocumentChunk>((resolve) => {
@@ -86,6 +104,8 @@ export class RAGService {
             };
             
             await db.documentChunks.put(dbChunk);
+            completedChunks++;
+            if (onProgress) onProgress(`Vectorized ${completedChunks}/${chunks.length} chunks...`);
             resolve(dbChunk);
           }
         };
@@ -96,6 +116,7 @@ export class RAGService {
     });
 
     await Promise.all(chunkPromises);
+    this.embeddingWorker.removeEventListener('message', progressHandler);
   }
 
   public async queryRAG(query: string, topK: number = 5): Promise<Array<{ chunk: DocumentChunk, score: number }>> {
@@ -117,14 +138,18 @@ export class RAGService {
     const allChunks = await db.documentChunks.toArray();
     const scoredChunks = [];
 
-    // Note: for very large DBs, doing this linear scan might be slow, but is fine for MVP.
-    for (const chunk of allChunks) {
-      if (chunk.embeddingId) {
-        const vec = await loadVectorFromOPFS(chunk.embeddingId);
-        if (vec) {
-          const score = cosineSimilarity(queryVector, vec);
-          scoredChunks.push({ chunk, score });
-        }
+    // Parallelize loading to speed up linear scan
+    const chunksWithVectors = await Promise.all(
+        allChunks.filter(c => c.embeddingId).map(async (chunk) => {
+            const vec = await loadVectorFromOPFS(chunk.embeddingId!);
+            return { chunk, vec };
+        })
+    );
+
+    for (const item of chunksWithVectors) {
+      if (item.vec) {
+         const score = cosineSimilarity(queryVector, item.vec);
+         scoredChunks.push({ chunk: item.chunk, score });
       }
     }
 

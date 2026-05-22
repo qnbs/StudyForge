@@ -139,7 +139,7 @@ export function LocalLibrary() {
             {liveLocalSources.length === 0 && (
               <tr>
                 <td colSpan={4} className="p-8 text-center text-slate-500 text-sm">
-                  {t('lib.emptyLocal')}
+                  {t('lib.emptyLocal') || 'No local sources found.'}
                 </td>
               </tr>
             )}
@@ -161,7 +161,7 @@ export function LocalLibrary() {
                 <td className="p-4">
                   <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 w-fit px-2 py-1 rounded">
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    {source.isVectorized ? 'Vectorized' : 'Available'}
+                    {source.isVectorized ? (t('lib.vectorized') || 'Vectorized') : (t('lib.available') || 'Available')}
                   </div>
                 </td>
               </tr>

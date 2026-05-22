@@ -40,20 +40,20 @@ export function HelpPhase() {
                </div>
             </div>
 
-            <div className="bg-indigo-50 border border-indigo-100 rounded-xl shadow-sm p-6 overflow-hidden relative">
+             <div className="bg-indigo-50 border border-indigo-100 rounded-xl shadow-sm p-6 overflow-hidden relative">
                <div className="absolute top-0 right-0 p-8 opacity-10">
                  <ShieldCheck className="w-32 h-32 text-indigo-900" />
                </div>
                <div className="relative z-10">
                  <h2 className="text-lg font-semibold text-indigo-900 mb-3 flex items-center gap-2">
                     <ShieldCheck className="w-5 h-5 text-indigo-700" />
-                    Privacy Promise
+                    {t('help.privacyPromise') || 'Privacy Promise'}
                  </h2>
                  <p className="text-sm text-indigo-800/80 leading-relaxed max-w-lg mb-4">
-                    We built StudyForge because we believe academic research should be private. If you notice any network requests reaching out to unknown third-party servers, please report it immediately. Your research is yours.
+                    {t('help.privacyPromiseDesc') || 'We built StudyForge because we believe academic research should be private. If you notice any network requests reaching out to unknown third-party servers, please report it immediately. Your research is yours.'}
                  </p>
                  <button className="bg-white text-indigo-700 border border-indigo-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-50 transition-colors shadow-sm">
-                   Read Privacy Manifesto
+                   {t('help.readManifesto') || 'Read Privacy Manifesto'}
                  </button>
                </div>
             </div>
@@ -68,7 +68,7 @@ export function HelpPhase() {
                  </h2>
                </div>
                <div className="p-2">
-                 {['Getting Started Guide', 'PDF Embeddings & RAG', 'Creating Custom Agents', 'Exporting to LaTeX'].map((guide, i) => (
+                 {[t('help.guide1') || 'Getting Started Guide', t('help.guide2') || 'PDF Embeddings & RAG', t('help.guide3') || 'Creating Custom Agents', t('help.guide4') || 'Exporting to LaTeX'].map((guide, i) => (
                    <button key={i} className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-colors text-left group">
                      <span className="text-sm font-medium text-slate-700 group-hover:text-indigo-600">{guide}</span>
                      <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600" />
@@ -87,19 +87,19 @@ export function HelpPhase() {
                <div className="p-5">
                  <ul className="space-y-3">
                     <li className="flex items-center justify-between text-sm">
-                       <span className="text-slate-600">Command Palette</span>
+                       <span className="text-slate-600">{t('help.shortcutCmd') || 'Command Palette'}</span>
                        <span className="px-2 py-1 bg-slate-100 border border-slate-200 rounded text-xs font-mono text-slate-500">Cmd + K</span>
                     </li>
                     <li className="flex items-center justify-between text-sm">
-                       <span className="text-slate-600">Save Project</span>
+                       <span className="text-slate-600">{t('help.shortcutSave') || 'Save Project'}</span>
                        <span className="px-2 py-1 bg-slate-100 border border-slate-200 rounded text-xs font-mono text-slate-500">Cmd + S</span>
                     </li>
                     <li className="flex items-center justify-between text-sm">
-                       <span className="text-slate-600">Autocomplete AI</span>
+                       <span className="text-slate-600">{t('help.shortcutAi') || 'Autocomplete AI'}</span>
                        <span className="px-2 py-1 bg-slate-100 border border-slate-200 rounded text-xs font-mono text-slate-500">Option + Space</span>
                     </li>
                     <li className="flex items-center justify-between text-sm">
-                       <span className="text-slate-600">Toggle Sidebar</span>
+                       <span className="text-slate-600">{t('help.shortcutSidebar') || 'Toggle Sidebar'}</span>
                        <span className="px-2 py-1 bg-slate-100 border border-slate-200 rounded text-xs font-mono text-slate-500">Cmd + B</span>
                     </li>
                  </ul>

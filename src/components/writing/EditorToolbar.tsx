@@ -1,5 +1,6 @@
 import { Bold, Italic, Quote, Sparkles, PenTool, Type, Loader2 } from 'lucide-react';
 import type { Editor } from '@tiptap/react';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 interface EditorToolbarProps {
   editor: Editor | null;
@@ -8,6 +9,7 @@ interface EditorToolbarProps {
 }
 
 export function EditorToolbar({ editor, isGenerating, onRephrase }: EditorToolbarProps) {
+  const { t } = useLanguage();
   if (!editor) {
     return (
       <div className="p-2 border-b border-slate-200 bg-slate-50/80 flex items-center justify-center shrink-0">
@@ -60,11 +62,11 @@ export function EditorToolbar({ editor, isGenerating, onRephrase }: EditorToolba
           disabled={isGenerating}
           className="flex items-center gap-1.5 md:gap-2 bg-indigo-50 border border-indigo-100 text-indigo-700 px-2 md:px-3 py-1.5 rounded-lg text-[11px] md:text-xs font-medium hover:bg-indigo-100 transition-colors disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
           {isGenerating ? <Loader2 className="w-3.5 h-3.5 md:w-4 md:h-4 animate-spin" /> : <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4" />}
-          <span className="hidden sm:inline">Rephrase </span>(AI)
+          <span className="hidden sm:inline">{t('writing.rephraseAi') || 'Rephrase '}</span>(AI)
         </button>
         <button className="hidden sm:flex items-center gap-1.5 md:gap-2 bg-white border border-slate-200 text-slate-700 px-2 md:px-3 py-1.5 rounded-lg text-[11px] md:text-xs font-medium hover:bg-slate-50 transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">
           <PenTool className="w-3.5 h-3.5 md:w-4 md:h-4" />
-          Humanize Text
+          {t('writing.humanize') || 'Humanize Text'}
         </button>
       </div>
     </div>

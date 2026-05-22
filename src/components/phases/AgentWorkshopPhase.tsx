@@ -7,10 +7,12 @@ import { AgentList } from '../agents/AgentList';
 import { AgentEditor } from '../agents/AgentEditor';
 import { TemplateGallery } from '../agents/TemplateGallery';
 import { toast } from 'sonner';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export function AgentWorkshopPhase() {
   const agents = useLiveQuery(() => db.agents.toArray()) || [];
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const { t } = useLanguage();
 
   // Automatically select the first agent if none is selected
   useEffect(() => {
@@ -22,24 +24,24 @@ export function AgentWorkshopPhase() {
   const handleSave = async () => {
     if (selectedAgent) {
       await db.agents.put({ ...selectedAgent, updatedAt: new Date().toISOString() });
-      toast.success('Agent saved successfully.');
+      toast.success(t('agents.saved') || 'Agent saved successfully.');
     }
   };
 
   const handleCreateNew = async () => {
     const newAgent: Agent = {
       id: crypto.randomUUID(),
-      name: 'New Custom Agent',
-      role: 'Custom Role',
-      description: 'A new custom assistant.',
-      prompt: 'You are a helpful assistant.',
+      name: t('agents.newCustomName') || 'New Custom Agent',
+      role: t('agents.customRole') || 'Custom Role',
+      description: t('agents.customDesc') || 'A new custom assistant.',
+      prompt: t('agents.customPrompt') || 'You are a helpful assistant.',
       model: 'Phi-4-mini',
       isCustom: true,
       createdAt: new Date().toISOString()
     };
     await db.agents.add(newAgent);
     setSelectedAgent(newAgent);
-    toast.success('New agent created.');
+    toast.success(t('agents.created') || 'New agent created.');
   };
 
   const handleDelete = async (id: string) => {
@@ -47,14 +49,14 @@ export function AgentWorkshopPhase() {
     if (selectedAgent?.id === id) {
       setSelectedAgent(agents.find(a => a.id !== id) || null);
     }
-    toast.success('Agent deleted.');
+    toast.success(t('agents.deleted') || 'Agent deleted.');
   };
 
   const handleImportTemplate = async (template: { title: string; desc: string; prompt: string; }) => {
     const newAgent: Agent = {
       id: crypto.randomUUID(),
       name: template.title,
-      role: 'Template Role',
+      role: t('agents.templateRole') || 'Template Role',
       description: template.desc,
       prompt: template.prompt,
       model: 'Phi-4-mini',
@@ -63,21 +65,21 @@ export function AgentWorkshopPhase() {
     };
     await db.agents.add(newAgent);
     setSelectedAgent(newAgent);
-    toast.success(`Imported template: ${template.title}`);
+    toast.success(`${t('agents.imported') || 'Imported template:'} ${template.title}`);
   };
 
   return (
     <div className="max-w-6xl mx-auto h-full flex flex-col animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row justify-between mb-4 md:mb-6 gap-4 md:gap-0 shrink-0">
         <div>
-          <h1 className="text-2xl md:text-3xl font-display font-bold text-slate-900 tracking-tight">Agent Workshop</h1>
-          <p className="mt-1 md:mt-2 text-sm md:text-base text-slate-500">Build specialized AI assistants tailored to your academic workflow.</p>
+          <h1 className="text-2xl md:text-3xl font-display font-bold text-slate-900 tracking-tight">{t('sidebar.agentWorkshop')}</h1>
+          <p className="mt-1 md:mt-2 text-sm md:text-base text-slate-500">{t('agents.desc') || 'Build specialized AI assistants tailored to your academic workflow.'}</p>
         </div>
         <button 
           onClick={handleCreateNew}
           className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-4 py-3 md:py-2 rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors shadow-sm self-start md:self-auto w-full md:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
           <Plus className="w-4 h-4" />
-          Create New Agent
+          {t('agents.createNew') || 'Create New Agent'}
         </button>
       </div>
 

@@ -17,7 +17,7 @@ export function SettingsPhase() {
   };
 
   const handleClearDatabase = async () => {
-    if (window.confirm("Are you sure you want to clear all local data? This cannot be undone.")) {
+    if (window.confirm(t('settings.clearConfirm') || "Are you sure you want to clear all local data? This cannot be undone.")) {
       await db.delete();
       window.location.reload();
     }
@@ -78,7 +78,7 @@ export function SettingsPhase() {
               </div>
               <div className="p-6 overflow-y-auto space-y-6">
                  <div>
-                   <label className="block text-sm font-medium text-slate-700 mb-3">App Language Preference</label>
+                   <label className="block text-sm font-medium text-slate-700 mb-3">{t('settings.langTitle') || 'App Language Preference'}</label>
                    <div className="flex flex-col sm:flex-row gap-4">
                       <label className={`flex-1 relative flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all ${language === 'en' ? 'border-indigo-600 bg-indigo-50/30 ring-1 ring-indigo-600 shadow-sm' : 'border-slate-200 hover:border-slate-300 bg-white'}`}>
                          <input type="radio" name="lang" value="en" checked={language === 'en'} onChange={() => setLanguage('en')} className="sr-only" />
@@ -87,7 +87,7 @@ export function SettingsPhase() {
                          </div>
                          <div>
                             <div className="font-semibold text-slate-900 text-sm">English</div>
-                            <div className="text-xs text-slate-500 mt-1">Default application language</div>
+                            <div className="text-xs text-slate-500 mt-1">{t('settings.langEnDesc') || 'Default application language'}</div>
                          </div>
                       </label>
                       <label className={`flex-1 relative flex items-center gap-3 p-4 border rounded-xl cursor-pointer transition-all ${language === 'de' ? 'border-indigo-600 bg-indigo-50/30 ring-1 ring-indigo-600 shadow-sm' : 'border-slate-200 hover:border-slate-300 bg-white'}`}>
@@ -97,7 +97,7 @@ export function SettingsPhase() {
                          </div>
                          <div>
                             <div className="font-semibold text-slate-900 text-sm">Deutsch</div>
-                            <div className="text-xs text-slate-500 mt-1">Deutsche Benutzeroberfläche</div>
+                            <div className="text-xs text-slate-500 mt-1">{t('settings.langDeDesc') || 'Deutsche Benutzeroberfläche'}</div>
                          </div>
                       </label>
                    </div>
@@ -116,7 +116,7 @@ export function SettingsPhase() {
               </div>
               <div className="p-6 overflow-y-auto space-y-6">
                  <div>
-                   <label className="block text-sm font-medium text-slate-700 mb-3">Color Scheme</label>
+                   <label className="block text-sm font-medium text-slate-700 mb-3">{t('settings.colorScheme') || 'Color Scheme'}</label>
                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {['Light', 'Dark', 'System'].map((theme, i) => (
                         <div 
@@ -194,15 +194,15 @@ export function SettingsPhase() {
               <div className="p-6 overflow-y-auto space-y-8">
                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                       <h3 className="font-semibold text-slate-900 text-sm">IndexedDB (Library)</h3>
-                       <p className="text-xs text-slate-500 mt-1 mb-3">Store metadata and app state.</p>
+                       <h3 className="font-semibold text-slate-900 text-sm">{t('settings.indexedDb') || 'IndexedDB (Library)'}</h3>
+                       <p className="text-xs text-slate-500 mt-1 mb-3">{t('settings.indexedDbDesc') || 'Store metadata and app state.'}</p>
                        <div className="flex items-end justify-between">
                          <span className="text-2xl font-bold text-slate-700">12.4 <span className="text-sm font-medium text-slate-400">MB</span></span>
                        </div>
                     </div>
                     <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-                       <h3 className="font-semibold text-indigo-900 text-sm">OPFS (Vector Store)</h3>
-                       <p className="text-xs text-indigo-600 mt-1 mb-3">Local embeddings & PDFs.</p>
+                       <h3 className="font-semibold text-indigo-900 text-sm">{t('settings.opfs') || 'OPFS (Vector Store)'}</h3>
+                       <p className="text-xs text-indigo-600 mt-1 mb-3">{t('settings.opfsDesc') || 'Local embeddings & PDFs.'}</p>
                        <div className="flex items-end justify-between">
                          <span className="text-2xl font-bold text-indigo-700">428.1 <span className="text-sm font-medium text-indigo-400">MB</span></span>
                        </div>
@@ -210,7 +210,7 @@ export function SettingsPhase() {
                  </div>
 
                  <div className="space-y-4">
-                    <h3 className="font-semibold text-slate-900 text-sm border-b border-slate-100 pb-2">Data Management</h3>
+                    <h3 className="font-semibold text-slate-900 text-sm border-b border-slate-100 pb-2">{t('settings.dataHandling') || 'Data Management'}</h3>
                     <div className="flex flex-col sm:flex-row gap-3">
                        <button className="flex-1 flex items-center justify-center gap-2 py-2.5 border border-slate-200 text-slate-700 hover:bg-slate-50 font-medium rounded-lg text-sm transition-colors">
                           <Download className="w-4 h-4" />
@@ -248,8 +248,8 @@ export function SettingsPhase() {
                  <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 flex gap-4">
                     <Lock className="w-6 h-6 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
-                      <h3 className="font-semibold text-emerald-900 text-sm">Your Data is Local</h3>
-                      <p className="text-sm text-emerald-700 mt-1 leading-relaxed">StudyForge is designed to operate entirely offline after the initial model download. Your documents, chat history, and API keys never leave your browser.</p>
+                      <h3 className="font-semibold text-emerald-900 text-sm">{t('settings.privacyLocalTitle') || 'Your Data is Local'}</h3>
+                      <p className="text-sm text-emerald-700 mt-1 leading-relaxed">{t('settings.privacyLocalDesc') || 'StudyForge is designed to operate entirely offline after the initial model download. Your documents, chat history, and API keys never leave your browser.'}</p>
                     </div>
                  </div>
 
@@ -271,8 +271,8 @@ export function SettingsPhase() {
                          <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
                        </div>
                        <div>
-                         <div className="font-semibold text-slate-900 text-sm">Anonymous Usage Analytics</div>
-                         <div className="text-xs text-slate-500 mt-1">Help us improve by sending crash reports and basic usage metrics. We never collect content.</div>
+                         <div className="font-semibold text-slate-900 text-sm">{t('settings.analyticsTitle') || 'Anonymous Usage Analytics'}</div>
+                         <div className="text-xs text-slate-500 mt-1">{t('settings.analyticsDesc') || 'Help us improve by sending crash reports and basic usage metrics. We never collect content.'}</div>
                        </div>
                     </label>
                  </div>

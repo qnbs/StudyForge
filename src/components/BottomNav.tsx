@@ -13,10 +13,10 @@ export function BottomNav({ activePhase, onPhaseChange }: BottomNavProps) {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const mainTabs = [
-    { id: 'planning', icon: <Lightbulb className="w-5 h-5" />, label: 'Plan' },
-    { id: 'research', icon: <BookOpen className="w-5 h-5" />, label: 'RAG' },
-    { id: 'elaboration', icon: <ListTree className="w-5 h-5" />, label: 'Draft' },
-    { id: 'writing', icon: <PenTool className="w-5 h-5" />, label: 'Write' },
+    { id: 'planning', icon: <Lightbulb className="w-5 h-5" />, label: t('bottomnav.plan') || 'Plan' },
+    { id: 'research', icon: <BookOpen className="w-5 h-5" />, label: t('bottomnav.rag') || 'RAG' },
+    { id: 'elaboration', icon: <ListTree className="w-5 h-5" />, label: t('bottomnav.draft') || 'Draft' },
+    { id: 'writing', icon: <PenTool className="w-5 h-5" />, label: t('bottomnav.write') || 'Write' },
   ];
 
   const moreTabs = [

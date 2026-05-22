@@ -38,8 +38,8 @@ export function CommandPalette({ onNavigate, isOpen, onClose }: CommandPalettePr
     { id: 'agents', label: t('sidebar.agentWorkshop'), type: 'nav' },
     { id: 'settings', label: t('sidebar.settings'), type: 'nav' },
     { id: 'help', label: t('sidebar.help'), type: 'nav' },
-    { id: 'export-latex', label: 'Export to LaTeX', type: 'action' },
-    { id: 'sync-zotero', label: 'Sync Zotero', type: 'action' },
+    { id: 'export-latex', label: t('cmd.exportLatex') || 'Export to LaTeX', type: 'action' },
+    { id: 'sync-zotero', label: t('cmd.syncZotero') || 'Sync Zotero', type: 'action' },
   ];
 
   const filtered = commands.filter(c => c.label.toLowerCase().includes(search.toLowerCase()));

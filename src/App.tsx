@@ -16,11 +16,13 @@ import type { WorkflowPhase } from './types';
 import { initializeDatabase } from './lib/db';
 import { Toaster } from 'sonner';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { useLanguage } from './contexts/LanguageContext';
 
 export default function App() {
   const [activePhase, setActivePhase] = useState<WorkflowPhase>('planning');
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isDbInitialized, setIsDbInitialized] = useState(false);
+  const { t } = useLanguage();
 
   useEffect(() => {
     initializeDatabase().then(() => setIsDbInitialized(true));
@@ -78,8 +80,8 @@ export default function App() {
       <main className="flex-1 flex flex-col bg-white overflow-hidden shadow-2xl relative z-10 w-full">
         <header className="h-14 md:h-16 border-b border-slate-200 flex items-center justify-between px-4 md:px-8 flex-shrink-0 bg-white z-20">
           <div className="flex items-center gap-2 md:gap-4">
-            <h2 className="text-slate-900 font-semibold tracking-tight text-sm md:text-base">Active Project</h2>
-            <span className="hidden md:inline text-xs text-slate-400 border-l border-slate-200 pl-4 italic">Phase: {activePhase}</span>
+            <h2 className="text-slate-900 font-semibold tracking-tight text-sm md:text-base">{t('app.activeProject') || 'Active Project'}</h2>
+            <span className="hidden md:inline text-xs text-slate-400 border-l border-slate-200 pl-4 italic">{t('app.phase') || 'Phase:'} {activePhase}</span>
           </div>
           <div className="flex items-center gap-1.5 md:gap-3">
             <button 
@@ -88,14 +90,14 @@ export default function App() {
               aria-label="Search or execute command"
             >
                <Search className="w-4 h-4 md:w-3.5 md:h-3.5" />
-               <span className="hidden md:inline text-xs font-medium">Search / Command...</span>
+               <span className="hidden md:inline text-xs font-medium">{t('app.searchCmd') || 'Search / Command...'}</span>
                <div className="hidden md:flex px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[10px] font-mono text-slate-400 items-center gap-0.5 ml-2">
                  <span>⌘</span>K
                </div>
             </button>
             <div className="w-px h-4 bg-slate-200 mx-1 hidden md:block"></div>
             <button className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium text-slate-600 hover:bg-slate-50 rounded border border-slate-200 transition-colors">LaTeX</button>
-            <button className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium bg-slate-900 text-white hover:bg-slate-800 rounded transition-colors whitespace-nowrap">Export</button>
+            <button className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium bg-slate-900 text-white hover:bg-slate-800 rounded transition-colors whitespace-nowrap">{t('app.export') || 'Export'}</button>
           </div>
         </header>
 
@@ -109,14 +111,14 @@ export default function App() {
           <div className="flex items-center gap-4 text-[11px] text-slate-500 font-medium">
             <div className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-indigo-500" aria-label="System status stable"></span>
-              <span>Encryption: AES-256 (Local Only)</span>
+              <span>{t('app.encryption') || 'Encryption: AES-256 (Local Only)'}</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <span>Storage: SQLite/OPFS</span>
+              <span>{t('app.storage') || 'Storage: SQLite/OPFS'}</span>
             </div>
           </div>
           <div className="text-[11px] text-slate-400">
-             Privacy First • Runs locally
+             {t('app.privacyFirst') || 'Privacy First • Runs locally'}
           </div>
         </footer>
       </main>

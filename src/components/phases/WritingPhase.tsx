@@ -7,11 +7,13 @@ import { db } from '../../lib/db';
 import { useLLM } from '../../lib/useLLM';
 import { toast } from 'sonner';
 import { EditorToolbar } from '../writing/EditorToolbar';
+import { useLanguage } from '../../contexts/LanguageContext';
 
 export function WritingPhase() {
   const [activeDocId, setActiveDocId] = useState<string | null>(null);
   const { isLoaded, isLoading, loadModel, generate } = useLLM();
   const [isGenerating, setIsGenerating] = useState(false);
+  const { t } = useLanguage();
 
   // Load a single active document or create one
   useEffect(() => {
@@ -23,16 +25,16 @@ export function WritingPhase() {
         const newId = crypto.randomUUID();
         await db.documents.add({
           id: newId,
-          title: 'Untitled Document',
+          title: t('writing.untitled') || 'Untitled Document',
           wordCount: 0,
           lastEdited: new Date().toISOString(),
-          content: '<h1>1. Introduction</h1><p>Start writing here...</p>',
+          content: t('writing.start') || '<h1>1. Introduction</h1><p>Start writing here...</p>',
         });
         setActiveDocId(newId);
       }
     }
     loadDoc();
-  }, []);
+  }, [t]);
 
   const activeDoc = useLiveQuery(
     () => activeDocId ? db.documents.get(activeDocId) : undefined,
@@ -73,18 +75,18 @@ export function WritingPhase() {
   }, [editor, activeDoc]);
 
   if (!editor || !activeDoc) {
-    return <div className="h-full flex items-center justify-center text-slate-500">Loading editor...</div>;
+    return <div className="h-full flex items-center justify-center text-slate-500">{t('writing.loading')}</div>;
   }
 
   const handleRephrase = async () => {
     if (!isLoaded && !isLoading) {
-      toast.info("Initializing ML Engine in background...");
+      toast.info(t('writing.initML'));
       await loadModel();
       // wait for it
     }
 
     if (isLoading) {
-      toast.info("Model is still loading, please wait.");
+      toast.info(t('writing.modelLoading'));
       return;
     }
 
@@ -92,7 +94,7 @@ export function WritingPhase() {
     const selectedText = editor.state.doc.textBetween(selection.from, selection.to, ' ');
 
     if (!selectedText) {
-      toast.warning("Please select some text to rephrase.");
+      toast.warning(t('writing.selectText'));
       return;
     }
 
@@ -101,10 +103,10 @@ export function WritingPhase() {
       const response = await generate(`Rephrase and improve the academic tone of the following text: "${selectedText}". Return ONLY the rewritten text, nothing else, no quotes.`, "You are an expert academic editor.");
       
       editor.chain().focus().deleteSelection().insertContent(response).run();
-      toast.success("Text rephrased successfully.");
+      toast.success(t('writing.rephraseSuccess'));
     } catch (err) {
       console.error(err);
-      toast.error("Failed to rephrase text.");
+      toast.error(t('writing.rephraseError'));
     } finally {
       setIsGenerating(false);
     }
@@ -119,14 +121,14 @@ export function WritingPhase() {
             value={activeDoc.title}
             onChange={(e) => db.documents.update(activeDoc.id, { title: e.target.value })}
             className="text-2xl md:text-3xl font-display font-bold text-slate-900 tracking-tight bg-transparent border-none outline-none focus:ring-0 p-0 m-0 w-full"
-            placeholder="Document Title"
+            placeholder={t('writing.plhTitle')}
           />
           <p className="mt-1 text-slate-500 text-xs md:text-sm">
-            {activeDoc.wordCount} words • Last edited {new Date(activeDoc.lastEdited).toLocaleTimeString()}
+            {activeDoc.wordCount} {t('writing.words')} • {t('writing.lastEdited')} {new Date(activeDoc.lastEdited).toLocaleTimeString()}
           </p>
         </div>
         <div className="flex items-center gap-3 self-start md:self-auto">
-          <span className="text-[10px] md:text-xs font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">Autosaved locally</span>
+          <span className="text-[10px] md:text-xs font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">{t('writing.autosaved')}</span>
           <button className="text-slate-400 hover:text-slate-600 p-2 bg-white rounded-lg border border-slate-200 md:border-transparent md:bg-transparent shadow-sm md:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500">
             <Settings2 className="w-4 h-4 md:w-5 md:h-5" />
           </button>

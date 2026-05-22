@@ -1,0 +1,50 @@
+---
+description: Enforce KISS DRY and file size limits when editing any source file
+globs: *.*
+alwaysApply: false
+---
+
+# Architecture Limits
+
+## Principles
+
+- **KISS:** Simplest solution that satisfies `@docs/PRD.md` offline-first constraints.
+- **DRY:** Reuse `@src/lib/*` utilities; do not copy-paste chunking, crypto, or DB logic into components.
+
+## File Size
+
+| Threshold | Action |
+|-----------|--------|
+| >200 lines | Consider extracting helpers |
+| >700 lines | **Must** split before merging |
+
+Split targets:
+
+- Pure logic → `src/lib/` or `src/lib/utils/`
+- Sub-UI → colocated folder under `src/components/`
+- Phase-specific logic → stay inside `src/components/phases/`
+
+<example>
+// WritingPhase.tsx at 750 lines → extract export menu + doc loader to writing/useDocument.ts
+</example>
+
+<example type="invalid">
+// Append 200 more lines to a 650-line component instead of splitting
+</example>
+
+## Layering
+
+```
+components/  → UI + hooks only
+contexts/    → global providers
+lib/         → business logic, no JSX
+workers/     → CPU/GPU-heavy tasks
+```
+
+- Components must not import from other phase components directly; share via `lib/` or `types.ts`.
+- No new backend assumptions — this is a browser-only SPA.
+
+## Dependencies
+
+- Avoid new npm packages unless justified in PRD or ADR.
+- Prefer browser APIs (OPFS, WebGPU, IndexedDB) over polyfill servers.

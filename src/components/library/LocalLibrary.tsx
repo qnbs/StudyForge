@@ -88,7 +88,7 @@ export function LocalLibrary() {
                   <div className="flex items-start gap-3">
                     <FileText className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
                     <div className="flex flex-col gap-1">
-                      <span className="text-sm font-medium text-slate-900 line-clamp-2" dangerouslySetInnerHTML={{ __html: source.title }}></span>
+                      <span className="text-sm font-medium text-slate-900 line-clamp-2">{source.title}</span>
                       <div className="flex items-center gap-1 text-[10px] font-medium text-slate-500 w-fit px-1.5 py-0.5 rounded mt-1 bg-slate-100 uppercase tracking-wider">
                         {source.type}
                       </div>

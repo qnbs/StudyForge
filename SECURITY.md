@@ -28,5 +28,5 @@ StudyForge implements a zero-trust Local Vault for Bring-Your-Own-Key (BYOK) sec
 - **Memory Lifetime**: Derived keys and raw API secrets exist only transiently in memory. They are wiped upon app hard refresh or timeout.
 
 ## Default Principles
-- **CSP (Content Security Policy):** The app enforces strict CSP rules allowing external connections solely to expected authentication endpoints and trusted LLM model huggingface artifact repositories.
+- **CSP (Content Security Policy):** The app uses a pragmatic CSP in `index.html` (`unsafe-inline`/`unsafe-eval` for Vite dev/build, `connect-src https:` for Zotero/PubMed/CDN models). Tightening CSP further requires a nonce-based build pipeline.
 - **Storage Encryption:** While local `OPFS` storage is walled off per origin by the browser, sensitive API keys for external services (Zotero) are hashed or wiped if the local-only strict mode is enforced.

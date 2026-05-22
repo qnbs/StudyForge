@@ -39,13 +39,16 @@ export interface Source {
   url?: string;
 }
 
+/** `low` | `medium` | `high` or full GGUF HTTPS URL */
+export type AgentModelRef = string;
+
 export interface Agent {
   id: string;
   name: string;
   role: string;
   description: string;
   prompt: string;
-  model: string;
+  model: AgentModelRef;
   isCustom: boolean;
   createdAt?: string;
   updatedAt?: string;

@@ -1,7 +1,8 @@
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { chunkText } from '../lib/rag/chunking';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 self.onmessage = async (event) => {
   const { type, payload } = event.data;
@@ -21,10 +22,10 @@ self.onmessage = async (event) => {
         const pageText = content.items.map((item: any) => ('str' in item ? item.str : '')).join(' ');
         fullText += pageText + '\n';
         
-        self.postMessage({ type: 'progress', data: { page: i, total: pdf.numPages } });
+        self.postMessage({ type: 'progress', data: { page: i, total: pdf.numPages, documentId } });
       }
 
-      const chunks = chunkText(fullText, 1000, 200);
+      const chunks = chunkText(fullText, 512, 64);
 
       const chunkObjects = chunks.map((text, i) => ({
         id: `${documentId}-chunk-${i}`,
@@ -37,7 +38,6 @@ self.onmessage = async (event) => {
         type: 'complete',
         payload: {
           documentId,
-          fullText,
           chunks: chunkObjects
         }
       });

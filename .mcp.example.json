@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "graphify-studyforge": {
+      "command": "bash",
+      "args": ["scripts/graphify-mcp-serve.sh"],
+      "type": "stdio"
+    }
+  }
+}

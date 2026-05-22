@@ -1,35 +1,40 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import 'fake-indexeddb/auto';
+import { db } from '../db';
 import { RAGService } from './ragService';
 
-// Mock Web Worker
-class MockWorker {
-    onMessageCallback: ((e: unknown) => void) | null = null;
-    addEventListener = vi.fn((event: string, callback: unknown) => {
-        if (event === 'message' && typeof callback === 'function') {
-            this.onMessageCallback = callback as (e: unknown) => void;
-        }
-    });
-    removeEventListener = vi.fn();
-    postMessage = vi.fn();
-    terminate = vi.fn();
+vi.mock('../opfs', () => ({
+  saveVectorToOPFS: vi.fn(async () => undefined),
+  loadVectorFromOPFS: vi.fn(async () => new Float32Array([1, 0])),
+  deleteVectorFromOPFS: vi.fn(async () => undefined),
+}));
 
-    // Helper to simulate worker response
-    simulateMessage(data: unknown) {
-        if (this.onMessageCallback) {
-            this.onMessageCallback({ data });
-        }
-    }
-}
+describe('RAGService', () => {
+  let rag: RAGService;
 
-describe('RAG Service', () => {
-    let rag: RAGService;
-    
-    beforeEach(() => {
-        vi.stubGlobal('Worker', MockWorker);
-        rag = new RAGService();
+  beforeEach(async () => {
+    await db.documentChunks.clear();
+    await db.sources.clear();
+    rag = new RAGService();
+  });
+
+  it('should be defined', () => {
+    expect(rag).toBeDefined();
+  });
+
+  it('deleteSourceArtifacts removes chunks for source id', async () => {
+    await db.documentChunks.add({
+      id: 'chunk1',
+      documentId: 'src_test',
+      sourceId: 'src_test',
+      chunkIndex: 0,
+      text: 'hello',
+      embeddingId: 'vec_chunk1',
+      vectorLength: 2,
     });
 
-    it('should initialize successfully', () => {
-        expect(rag).toBeDefined();
-    });
+    await rag.deleteSourceArtifacts('src_test');
+    const remaining = await db.documentChunks.toArray();
+    expect(remaining).toHaveLength(0);
+  });
 });

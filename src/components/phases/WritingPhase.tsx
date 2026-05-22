@@ -5,6 +5,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
 import { useLLM } from '../../lib/useLLM';
+import { ragService } from '../../lib/rag/ragService';
+import { buildExportBlob, downloadBlob } from '../../lib/export/exportDocument';
 import { toast } from 'sonner';
 import { EditorToolbar } from '../writing/EditorToolbar';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -87,40 +89,42 @@ export function WritingPhase() {
     }
   }, [editor, activeDoc]);
 
+  useEffect(() => {
+    const onExport = (e: Event) => {
+      const format = (e as CustomEvent<{ format?: 'latex' | 'md' | 'html' | 'txt' }>).detail?.format ?? 'latex';
+      if (editor && activeDoc) {
+        const { blob, extension } = buildExportBlob(
+          format,
+          activeDoc.title,
+          editor.getHTML(),
+          editor.getText()
+        );
+        downloadBlob(
+          blob,
+          `${activeDoc.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${extension}`
+        );
+        toast.success(`Exported as .${extension}`);
+      }
+    };
+    window.addEventListener('studyforge:export', onExport);
+    return () => window.removeEventListener('studyforge:export', onExport);
+  }, [editor, activeDoc]);
+
   if (!editor || !activeDoc) {
     return <div className="h-full flex items-center justify-center text-slate-500">{t('writing.loading')}</div>;
   }
 
   const handleExport = (format: 'html' | 'md' | 'txt' | 'latex') => {
-    let content = '';
-    let mimeType = 'text/plain';
-    let extension = format;
-
-    if (format === 'html') {
-      content = `<!DOCTYPE html>\n<html>\n<head>\n<title>${activeDoc.title}</title>\n</head>\n<body>\n${editor.getHTML()}\n</body>\n</html>`;
-      mimeType = 'text/html';
-    } else if (format === 'txt') {
-      content = editor.getText();
-      mimeType = 'text/plain';
-    } else if (format === 'md') {
-      // Basic markdown parser using the text format, ideally we'd use tiptap markdown extension but this works for basic text.
-      // Replacing HTML tags very naively or export raw text. Let's export just raw text for now if no parser available.
-      content = `# ${activeDoc.title}\n\n${editor.getText()}`;
-      mimeType = 'text/markdown';
-    } else if (format === 'latex') {
-      content = `\\documentclass{article}\n\\title{${activeDoc.title}}\n\\begin{document}\n\\maketitle\n\n${editor.getText()}\n\\end{document}`;
-      mimeType = 'application/x-tex';
-      extension = 'tex';
-    }
-
-    const blob = new Blob([content], { type: `${mimeType};charset=utf-8;` });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `${activeDoc.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${extension}`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const { blob, extension } = buildExportBlob(
+      format,
+      activeDoc.title,
+      editor.getHTML(),
+      editor.getText()
+    );
+    downloadBlob(
+      blob,
+      `${activeDoc.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${extension}`
+    );
     setShowExportMenu(false);
     toast.success(`Exported as .${extension}`);
   };
@@ -146,7 +150,21 @@ export function WritingPhase() {
 
     setIsGenerating(true);
     try {
-      const response = await generate(`Rephrase and improve the academic tone of the following text: "${selectedText}". Return ONLY the rewritten text, nothing else, no quotes.`, "You are an expert academic editor.");
+      let systemPrompt = 'You are an expert academic editor.';
+      try {
+        const ragHits = await ragService.queryRAG(selectedText, 3, activeDocId ?? undefined);
+        if (ragHits.length > 0) {
+          const ctx = ragHits.map((r) => r.chunk.text).join('\n---\n');
+          systemPrompt += `\n\nUse this document context when rephrasing:\n\n${ctx}`;
+        }
+      } catch {
+        /* RAG optional */
+      }
+
+      const response = await generate(
+        `Rephrase and improve the academic tone of the following text: "${selectedText}". Return ONLY the rewritten text, nothing else, no quotes.`,
+        systemPrompt
+      );
       
       editor.chain().focus().deleteSelection().insertContent(response).run();
       toast.success(t('writing.rephraseSuccess') || 'Rephrased successfully.');

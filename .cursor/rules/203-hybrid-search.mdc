@@ -1,0 +1,30 @@
+---
+description: Apply BM25 plus vector RRF hybrid retrieval when editing RAG query logic
+globs: src/lib/rag/**/*.ts
+alwaysApply: false
+---
+
+# Hybrid Search (BM25 + RRF)
+
+Canonical: `@src/lib/rag/hybridSearch.ts`, `@src/lib/rag/bm25.ts`, `@src/lib/rag/queryRAG.ts`.
+
+## Pipeline
+
+1. **BM25** sparse scores over `documentChunks.text` (`scoreBM25`).
+2. **Dense** cosine similarity via batched OPFS loads (`queryRAGVectors`).
+3. **RRF** fusion (`fuseRankings`, k=60) — do not replace with linear score averaging.
+
+## Rules
+
+- `ragService.queryRAG` must call `queryRAGHybrid`, not vector-only scan.
+- Tune `topK * 3` candidate pool before fusion; return final `topK` only.
+- Keyword-heavy queries benefit from BM25; semantic paraphrases from vectors — keep both.
+
+<example>
+const hits = await queryRAGHybrid(queryVector, queryText, 5, sourceId);
+</example>
+
+<example type="invalid">
+const all = await db.documentChunks.toArray();
+const scored = await Promise.all(all.map(loadVector)); // OOM
+</example>

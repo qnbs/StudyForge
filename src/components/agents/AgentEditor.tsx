@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Settings2, Trash2, History, Sparkles, Bot, Save, Loader2 } from 'lucide-react';
 import type { Agent } from '../../types';
 import { useLLM } from '../../lib/useLLM';
+import { AGENT_MODEL_OPTIONS } from '../../lib/modelConfig';
 import { toast } from 'sonner';
 
 interface AgentEditorProps {
@@ -12,7 +13,7 @@ interface AgentEditorProps {
 }
 
 export function AgentEditor({ agent, onUpdate, onDelete, onSave }: AgentEditorProps) {
-  const { isLoaded, isLoading, progress, loadModel, generateStream } = useLLM();
+  const { isLoading, progress, ensureModelForRef, generateStream } = useLLM();
   const [testInput, setTestInput] = useState('');
   const [testOutput, setTestOutput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -24,8 +25,8 @@ export function AgentEditor({ agent, onUpdate, onDelete, onSave }: AgentEditorPr
     setTestOutput('');
 
     try {
-      if (!isLoaded) {
-        await loadModel();
+      if (agent?.model) {
+        await ensureModelForRef(agent.model);
       }
 
       await generateStream(testInput, agent?.prompt || '', (text) => {
@@ -125,13 +126,14 @@ export function AgentEditor({ agent, onUpdate, onDelete, onSave }: AgentEditorPr
             <select 
               className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 appearance-none"
               disabled={!agent.isCustom}
-              value={agent.model || ''}
+              value={agent.model || 'medium'}
               onChange={(e) => onUpdate({ ...agent, model: e.target.value })}
             >
-                <option value="Phi-4-mini">Phi-4 (4-bit Quantized) - Local WebGPU</option>
-                <option value="Gemma-3">Gemma 3 (Local) - WebGPU</option>
-                <option value="Llama-3.2-8B">Llama 3.2 8B (Local) - WebGPU</option>
-                <option value="Custom Cloud" disabled>Custom Cloud Endpoint (Coming Soon)</option>
+                {AGENT_MODEL_OPTIONS.map((opt) => (
+                  <option key={opt.key} value={opt.key}>
+                    {opt.label}
+                  </option>
+                ))}
             </select>
             <div className="mt-2 md:mt-3 flex items-start gap-2 bg-slate-100 p-2 md:p-3 rounded-lg border border-slate-200">
                 <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-indigo-600 shrink-0 mt-0.5" />

@@ -1,0 +1,63 @@
+---
+alwaysApply: false
+---
+
+# MCP, PRD & Consciousness Stream (Manual Rule)
+
+Invoke via `@850-mcp-and-prd` when planning architecture, MCP setup, or capturing team learnings.
+
+## Product Requirements
+
+Before structural or architectural changes:
+
+1. Read `@docs/PRD.md`
+2. Cross-check `@ARCHITECTURE.md` and relevant `@docs/ADR/*`
+3. Confirm change aligns with offline-first non-goals
+
+## Consciousness Stream
+
+Append durable decisions and agent learnings to `@.notes/meeting_notes.md`:
+
+```markdown
+## Agent-Learnings
+2026-05-22 — Lesson — Created 120-rag-workers.mdc after worker boundary fix
+```
+
+Do not store secrets in meeting notes.
+
+## MCP Servers (StudyForge — Solo-Dev)
+
+| Server | Purpose | Config | Hardware |
+|--------|---------|--------|----------|
+| **graphify-studyforge** | AST knowledge graph MCP | `.mcp.example.json` | Low-end OK |
+| **code-review-graph** | Embeddings, impact radius | `.mcp.example.full.json` | 16GB+ RAM only |
+| **github** (optional) | Issues, PRs | `~/.cursor/mcp.json` | — |
+| **browser** (optional) | PWA debug | User global | — |
+
+### Setup (low-end default)
+
+```bash
+pip install graphifyy
+npm run graphify:refresh
+cp .mcp.example.json .cursor/mcp.json
+```
+
+Enable **graphify-studyforge** in Cursor Settings → MCP. Do **not** run `graphify hook install` or `graphify watch` on this project.
+
+Full profile (optional): `cp .mcp.example.full.json .cursor/mcp.json`
+
+Policy: `@docs/GRAPHIFY.md`, rule `@105-graphify-solo-dev.mdc`
+
+### Graph-First Workflow (token-efficient)
+
+1. Read `graphify-out/GRAPH_REPORT.md`
+2. MCP graphify or `graphify query --budget 1500`
+3. Targeted file reads — avoid repo-wide grep on low-end sessions
+
+### Remote Snapshot
+
+Only `graphify-out/graph.json` + `GRAPH_REPORT.md` are pushed to GitHub (latest snapshot, no graph history).
+
+## Legacy Prohibition
+
+Do not create or commit `.cursorrules`. Use modular `.cursor/rules/*.mdc` only.

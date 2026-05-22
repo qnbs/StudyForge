@@ -1,0 +1,46 @@
+---
+description: Sanitize and bound external fetch calls when editing library integration components
+globs: src/components/library/**/*.tsx
+alwaysApply: false
+---
+
+# External Library APIs
+
+Components: Zotero, Mendeley, PubMed, arXiv, Archive under `src/components/library/`.
+
+## Fetch Discipline
+
+- Always set request timeouts (AbortController) for third-party APIs.
+- Handle non-2xx responses with user-visible error toasts; never throw unhandled rejections.
+- Parse JSON defensively; validate required fields before `db` writes.
+
+<example>
+if (!response.ok) {
+  toast.error(t('library.syncFailed'));
+  return;
+}
+const data = await response.json();
+if (!Array.isArray(data?.items)) return;
+</example>
+
+<example type="invalid">
+const html = await response.text();
+container.innerHTML = html; // XSS risk
+</example>
+
+## Rate Limits & Keys
+
+- Respect NCBI/PubMed usage guidelines (email parameter where required).
+- Zotero/Mendeley credentials come from user input or vault — never from env vars.
+- Debounce search inputs; avoid request storms on keystroke.
+
+## Local Persistence
+
+- Map external metadata to `@src/types.ts` `Source` shape before `db.sources` insert.
+- Deduplicate by stable external IDs where available.
+- Store only metadata locally; PDF binaries use filesystem/OPFS flows in Research phase.
+
+## UI
+
+- Show loading and empty states for all async library operations.
+- Disable submit while `fetch` is in flight.

@@ -8,18 +8,24 @@ import { AgentEditor } from '../agents/AgentEditor';
 import { TemplateGallery } from '../agents/TemplateGallery';
 import { toast } from 'sonner';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useActiveAgent } from '../../contexts/AgentContext';
 
 export function AgentWorkshopPhase() {
   const agents = useLiveQuery(() => db.agents.toArray()) || [];
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+  const { setActiveAgent } = useActiveAgent();
   const { t } = useLanguage();
 
-  // Automatically select the first agent if none is selected
   useEffect(() => {
     if (agents.length > 0 && !selectedAgent) {
       setSelectedAgent(agents[0]);
+      setActiveAgent(agents[0]);
     }
-  }, [agents, selectedAgent]);
+  }, [agents, selectedAgent, setActiveAgent]);
+
+  useEffect(() => {
+    if (selectedAgent) setActiveAgent(selectedAgent);
+  }, [selectedAgent, setActiveAgent]);
 
   const handleSave = async () => {
     if (selectedAgent) {

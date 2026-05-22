@@ -40,3 +40,19 @@ This section guides you through submitting a bug report for StudyForge.
 * Avoid redundant state. Prioritize derived state variables.
 * Stick to Tailwind utility classes instead of defining custom CSS classes.
 * Utilize `lucide-react` for iconography.
+
+## Cursor Rules & MCP
+
+* Agent rules live in `.cursor/rules/*.mdc` (modular). Do not add `.cursorrules`.
+* Global manifest: `.cursor/index.mdc` (always applied, keep under 100 lines).
+* MCP (low-end): `cp .mcp.example.json .cursor/mcp.json` — graphify only via `scripts/graphify-mcp-serve.sh`
+* Graphify solo-dev: see `docs/GRAPHIFY.md` — run `npm run graphify:refresh` before push; commit only `graph.json` + `GRAPH_REPORT.md`
+* Do **not** use `graphify watch`, `graphify hook install`, or commit `graphify-out/cache|memory|wiki`
+
+### RAG & local LLM conventions
+
+* Agent `model` values: preset keys `low` | `medium` | `high` or a full GGUF HTTPS URL — resolved in `src/lib/modelConfig.ts`.
+* Chat and agent tests call `ensureModelForRef()` from `LLMContext` before generation.
+* RAG queries use hybrid BM25 + vector fusion (`queryRAGHybrid`); extend `src/lib/rag/hybridSearch.test.ts` for retrieval changes.
+* No `@google/genai` or `dotenv` in dependencies — cloud keys stay in the encrypted BYOK vault only.
+* Product requirements: `docs/PRD.md` — read before architectural changes.

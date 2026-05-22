@@ -1,0 +1,41 @@
+---
+description: Protect BYOK vault crypto when editing encryption or secure config context
+globs: src/lib/crypto.ts,src/contexts/SecureConfigContext.tsx
+alwaysApply: false
+---
+
+# BYOK Cryptographic Vault
+
+Canonical: `@src/lib/crypto.ts`, consumer `@src/contexts/SecureConfigContext.tsx`, `@SECURITY.md`.
+
+## Algorithms
+
+- **Encryption:** AES-256-GCM with unique IV per record.
+- **KDF:** PBKDF2-HMAC-SHA256 at OWASP-recommended iteration count (600k+).
+- Store `iv` and `salt` alongside ciphertext in Dexie `secureConfig`.
+
+## Memory Lifecycle
+
+- Derived keys and plaintext API secrets exist only transiently in memory.
+- Wipe sensitive references on lock, timeout, or hard refresh.
+- Never persist master password or raw keys to localStorage/sessionStorage.
+
+<example>
+const key = await deriveKey(masterPassword, salt);
+const ciphertext = await encrypt(apiKey, key, iv);
+await db.secureConfig.put({ provider, ciphertext, iv, salt });
+</example>
+
+<example type="invalid">
+localStorage.setItem('openai_key', apiKey);
+</example>
+
+## Context API
+
+- `SecureConfigContext` exposes lock/unlock and provider accessors — components must not import crypto primitives directly unless necessary.
+- Decrypt only at the moment of an outbound API call; re-lock when idle if timeout is implemented.
+
+## Logging & Tests
+
+- Tests use known fixtures; never log real keys in test output.
+- See `@src/lib/crypto.test.ts` for round-trip encrypt/decrypt patterns.

@@ -1,0 +1,57 @@
+---
+description: Apply React Tailwind and a11y conventions when editing UI components or contexts
+globs: src/components/**/*.tsx,src/App.tsx,src/contexts/**/*.tsx
+alwaysApply: false
+---
+
+# React UI Components
+
+## Component Style
+
+- Functional components only; named exports for phase components.
+- Props typed inline or as `interface XxxProps` above component.
+- Avoid redundant state; derive from `useLiveQuery` or props where possible.
+
+## Styling
+
+- Tailwind utility classes; theme tokens in `@src/index.css` `@theme` block.
+- Use `@tailwindcss/typography` `prose` for rich text areas (TipTap).
+- Icons from `lucide-react`; animations via `motion/react`.
+
+## TipTap Editor
+
+- Editor confined to `@src/components/phases/WritingPhase.tsx` and `@src/components/writing/EditorToolbar.tsx`.
+- Do not mount TipTap in other phases without ADR justification.
+
+## i18n
+
+- All user-visible strings via `useLanguage()` → `t('key')` from `@src/i18n/translations.ts`.
+- Add both `en` and `de` keys for new UI copy.
+
+## Accessibility
+
+- Icon-only buttons require `aria-label`.
+- Maintain visible focus states; support keyboard navigation in modals/menus.
+- `CommandPalette` and nav items must be reachable by keyboard.
+
+<example>
+<button aria-label={t('nav.settings')} onClick={onOpenSettings}>
+  <Settings className="h-5 w-5" />
+</button>
+</example>
+
+<example type="invalid">
+<button onClick={onOpenSettings}>
+  <Settings className="h-5 w-5" />
+</button>
+</example>
+
+## Phase Shell
+
+- `App.tsx` owns phase `switch`; new phases register in sidebar + bottom nav.
+- Shared layout: `Sidebar`, `RightPanel`, `BottomNav` — keep phase components free of shell duplication.
+
+## Error UX
+
+- Wrap risky subtrees with `@src/components/ErrorBoundary.tsx`.
+- Async failures: `toast.error()` from sonner.

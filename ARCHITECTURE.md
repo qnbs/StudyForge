@@ -4,7 +4,7 @@
 
 ## Core Pillars
 
-1. **Client-Side Compute Only:** All expensive computations (e.g., text embedding, generation via LLM) are pushed to the edge device. StudyForge relies on modern browser APIs like `WebGPU` via libraries such as `WebLLM`.
+1. **Client-Side Compute Only:** All expensive computations (embeddings, LLM inference) run in the browser via **Web Workers**, **Wllama/WebGPU**, and **Xenova/transformers** (WASM).
 2. **Local Storage and Durability:**
    * **IndexedDB:** Used securely for application state, agent configurations, conversation history, and citation metadata sync (Zotero/Mendeley).
    * **OPFS (Origin Private File System):** Critical for efficiently storing and accessing gigabytes of embedded PDF vector data locally without locking up the browser main thread.
@@ -29,7 +29,11 @@ src/
 │       ├── WritingPhase     # Primary Text Editor
 │       └── AgentWorkshop    # Local LLM persona building
 ├── contexts/                # Global State (Theme, Lang, LocalDB refs)
-├── lib/                     # Utilities (RAG handlers, WebLLM wrappers)
+├── lib/
+│   ├── rag/                 # chunking, bm25, hybridSearch (RRF), ragService
+│   ├── modelConfig.ts       # Wllama preset URLs (low/medium/high)
+│   └── export/              # shared document export
+├── contexts/                # Language, Vault, LLM singleton, Active Agent
 └── i18n/                    # Localization structures (EN/DE mappings)
 ```
 
@@ -40,6 +44,13 @@ When a user introduces a PDF document via the Research/Library phases:
 1. **Ingest & Parse:** The file is picked up via the browser filesystem access API.
 2. **Chunking:** A Web Worker processes the raw text into manageable token chunks.
 3. **Embedding:** The chunks are passed to a local lightweight embedding model running over `WebGPU`.
-4. **Storage:** The output float arrays alongside metadata are cached into the device's `OPFS` for fast subsequent Retrieval-Augmented Generation processes.
+4. **Storage:** Embedding vectors in `OPFS`; chunk metadata in Dexie `documentChunks`.
+5. **Retrieval:** Hybrid search — BM25 (keyword) + dense cosine (semantic) fused with **Reciprocal Rank Fusion (RRF)** in `queryRAGHybrid`.
 
-This allows all data querying to happen instantly offline.
+## LLM & Agents
+
+- Single **LLMContext** provider loads one Wllama GGUF model per tab.
+- `Agent.model` uses preset keys `low` | `medium` | `high` resolved via `resolveModelUrl()`.
+- Chat (`RightPanel`) uses active agent prompt + hybrid RAG context.
+
+This allows querying and generation offline after initial model download.

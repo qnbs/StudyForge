@@ -1,0 +1,40 @@
+---
+description: Apply Dexie schema and query patterns when editing database or type definitions
+globs: src/lib/db.ts,src/types.ts
+alwaysApply: false
+---
+
+# Dexie / IndexedDB Storage
+
+Canonical implementation: `@src/lib/db.ts`, types in `@src/types.ts`.
+
+## Schema Changes
+
+- Bump `this.version(N)` when adding stores, indexes, or fields.
+- Provide `.upgrade()` migration logic for existing user data; never drop tables silently.
+- Keep store definitions declarative in the version block.
+
+<example>
+this.version(5).stores({ documents: 'id, title, lastEdited, projectId' });
+</example>
+
+<example type="invalid">
+// Direct IndexedDB API bypassing Dexie
+const req = indexedDB.open('StudyForgeDB');
+</example>
+
+## Queries
+
+- Use `useLiveQuery` from `dexie-react-hooks` in React components for reactive reads.
+- Use `db.transaction('rw', [...tables], async () => {})` for multi-table writes.
+- Prefer `bulkPut` / `bulkAdd` for batch imports (library sync).
+
+## Initialization
+
+- Default settings and agents are seeded in `initializeDatabase()` — extend there, not in components.
+- `secureConfig` table stores encrypted BYOK entries keyed by `provider`.
+
+## Testing
+
+- Tests must use `fake-indexeddb/auto` and clear tables in `beforeAll`/`beforeEach`.
+- See `@src/lib/db.test.ts` for patterns.

@@ -1,0 +1,55 @@
+---
+description: Project Manifest and Global Architecture
+alwaysApply: true
+---
+
+# StudyForge Manifest
+
+## Purpose
+
+Privacy-first, offline-first academic PWA. Local LLM inference (WebGPU/WASM), client-side RAG, and optional BYOK cloud fallback. No backend; all compute and storage run in the browser.
+
+## Tech Stack
+
+- **Runtime:** TypeScript strict, React 19, Vite 6, ES modules
+- **UI:** Tailwind CSS v4, TipTap, motion, lucide-react, sonner
+- **Data:** Dexie 4 (IndexedDB), OPFS for embedding vectors
+- **AI:** @wllama/wllama (local), @xenova/transformers (embeddings), hybrid RAG (BM25+RRF)
+- **Workers:** PDF parse + embedding pipelines off main thread
+- **Tests:** Vitest 4, fake-indexeddb, Testing Library
+- **PWA:** vite-plugin-pwa / Workbox
+
+## Architecture Axioms
+
+1. **Client-only** — No server API layer; external calls are direct `fetch` from library components.
+2. **Offline-first** — Documents and vectors never leave the device unless user invokes a BYOK provider.
+3. **Phase navigation** — `src/App.tsx` switches domain phases; no React Router.
+4. **Secrets in vault** — API keys via AES-GCM vault (`src/lib/crypto.ts`), not `.env`. Only `VITE_*` flags in env.
+5. **Strict TS** — No `any`; ESLint enforces `@typescript-eslint/no-explicit-any`.
+
+## Directory Map
+
+| Path | Role |
+|------|------|
+| `src/components/phases/` | Domain UI (Planning, Research, Writing, Agents, …) |
+| `src/components/library/` | Zotero, Mendeley, PubMed, arXiv integrations |
+| `src/lib/` | db, crypto, opfs, rag, useLLM, ai/providers |
+| `src/workers/` | pdfWorker, embeddingWorker |
+| `src/contexts/` | LanguageContext, SecureConfigContext |
+| `src/i18n/` | EN/DE translations |
+
+## Canonical References
+
+- Architecture: `@ARCHITECTURE.md`
+- Product requirements: `@docs/PRD.md`
+- Database schema: `@src/lib/db.ts`
+- Security model: `@SECURITY.md`
+- Types: `@src/types.ts`
+
+## Agent Conventions
+
+- Prefer modular `.cursor/rules/*.mdc` over duplicating code in rules.
+- `globs` syntax: comma-separated, no spaces after commas, no quotes.
+- File size target: 200–700 lines; split when exceeded.
+- Before architectural changes: read `@docs/PRD.md`.
+- Graphify (solo-dev): latest snapshot only in git — `@docs/GRAPHIFY.md`, `@105-graphify-solo-dev.mdc`. Read `graphify-out/GRAPH_REPORT.md` before broad search. No `graphify watch` on low-end hardware.

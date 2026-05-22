@@ -1,0 +1,48 @@
+---
+description: Enforce deterministic Vitest practices when editing or creating test files
+globs: **/*.test.ts,**/*.spec.ts
+alwaysApply: false
+---
+
+# Testing Standards (Vitest)
+
+## Determinism
+
+- Each test must run independently; no order dependency between files.
+- Reset mutable state in `beforeEach`/`beforeAll` (Dexie tables, mocks).
+- Use fixed dates/IDs in assertions when timestamps matter.
+
+## Mocking External Dependencies
+
+- **IndexedDB:** `import 'fake-indexeddb/auto'` — see `@src/lib/db.test.ts`.
+- **OPFS / Workers:** mock at module boundary; do not hit real OPFS in unit tests unless isolated.
+- **fetch / APIs:** use Vitest `vi.fn()` or MSW for library integration tests (MSW in devDeps, prefer for new API tests).
+
+## Strict Prohibitions
+
+- **NEVER** comment out, skip (`it.skip`), or delete failing tests to green CI.
+- **NEVER** weaken assertions to pass without fixing root cause.
+- **NEVER** commit tests that depend on network, real API keys, or WebGPU hardware.
+
+<example>
+it('should insert and retrieve a source', async () => {
+  await db.sources.clear();
+  await db.sources.add(mockSource);
+  expect((await db.sources.get('src_123'))?.title).toBe('Test Paper');
+});
+</example>
+
+<example type="invalid">
+// it('syncs zotero', ...) — skipped because API down
+it.skip('syncs zotero', async () => { ... });
+</example>
+
+## Coverage Expectations
+
+- New `lib/` logic requires colocated `*.test.ts`.
+- UI components: test when logic is non-trivial; smoke tests optional.
+- Run `npm test` and `npm run lint` before PR.
+
+## CI Alignment
+
+Matches `.github/workflows/ci.yml`: eslint + tsc + vitest + build must pass.

@@ -6,3 +6,11 @@ coverage/
 *.log
 .env*
 !.env.example
+# Graphify solo-dev: commit ONLY latest snapshot (not cache/memory/wiki/history)
+graphify-out/cache/
+graphify-out/memory/
+graphify-out/wiki/
+graphify-out/graph.html
+.code-review-graph/
+.cursor/mcp.json
+.cursorrules

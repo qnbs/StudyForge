@@ -36,7 +36,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
         id: 'global',
         language: newLang,
         theme: 'system',
-        modelLimitConfig: 'default'
+        modelLimitConfig: 'medium'
       });
     }
   };

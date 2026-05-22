@@ -1,0 +1,52 @@
+---
+description: Enforce secret handling and safe errors when editing any project file
+globs: *.*
+alwaysApply: false
+---
+
+# Core Security
+
+## Secrets
+
+- **Never** hardcode API keys, tokens, master passwords, or Zotero credentials in source.
+- **Never** store BYOK secrets in `.env`. Only `VITE_*` compile-time flags per `@.env.example`.
+- Cloud provider keys belong in the encrypted vault (`@src/lib/crypto.ts`, `@src/contexts/SecureConfigContext.tsx`).
+- Use `.env` locally; commit only `.env.example`.
+
+<example>
+// Read debug flag only
+const debug = import.meta.env.VITE_ENABLE_DEBUG_TOOLS === 'true';
+</example>
+
+<example type="invalid">
+const GEMINI_KEY = 'sk-live-abc123'; // hardcoded in source
+</example>
+
+## PDF Ingestion
+
+- Parse PDFs via `pdfjs-dist` text extraction only; never execute embedded PDF scripts.
+- Treat uploaded PDF content as untrusted input in RAG chunking.
+
+## External API Responses
+
+- Validate and sanitize JSON from Zotero, Mendeley, PubMed, arXiv before rendering or persisting.
+- Never inject API response strings via `dangerouslySetInnerHTML`.
+
+## Error Handling & Logging
+
+- Surface user-facing errors via `sonner` toasts and `@src/components/ErrorBoundary.tsx`.
+- Log errors without secrets: redact keys, IVs, salts, and vault payloads.
+- Prefer typed errors over silent `catch {}` blocks in security-sensitive paths.
+
+<example>
+console.error('Vault unlock failed', { provider: name });
+</example>
+
+<example type="invalid">
+console.log('decrypted key', apiKey);
+</example>
+
+## CSP & Network
+
+- Respect existing CSP constraints; new external endpoints require security review.
+- Document new third-party origins in `@SECURITY.md` when adding fetch targets.

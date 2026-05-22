@@ -1,0 +1,60 @@
+---
+description: ALWAYS use when asked to CREATE A RULE or UPDATE A RULE or when taught a lesson to RETAIN AS NEW RULE
+globs: 
+alwaysApply: false
+---
+
+# Meta-Brain: Rule Creation Protocol
+
+When the user instructs rule creation, or a correction must be retained, create or modify a `.mdc` file in `.cursor/rules/`.
+
+## Mandatory Behaviors
+
+1. **Location:** All project rules live in `.cursor/rules/` as `.mdc` files. Never use monolithic `.cursorrules`.
+2. **Nomenclature:** Three-digit kebab-case prefix:
+   - `001-099` Core / Security
+   - `100-199` Integrations / APIs
+   - `200-299` Architecture / Patterns
+   - `300-399` UI / Styling
+   - `800-899` Workflows / Testing
+3. **ATO descriptions:** Frontmatter `description` uses Action-Trigger-Outcome format, max 120 characters.
+4. **globs syntax:** No spaces after commas; no quotes.
+
+<example>
+globs: src/lib/**/*.ts,src/workers/**/*.ts
+</example>
+
+<example type="invalid">
+globs: "src/lib/**/*.ts", src/workers/**/*.ts
+</example>
+
+5. **Token footprint:** Rules must not exceed 200 lines. Reference canonical files (`@src/lib/db.ts`) instead of duplicating code blocks.
+6. **Examples:** Every rule includes `<example>` and `<example type="invalid">` blocks where patterns apply.
+7. **Editor:** Write files with the standard text editor workflow to avoid MDC editor bugs.
+
+## StudyForge Number Map
+
+| Range | Example files |
+|-------|---------------|
+| 001-099 | `001-core-security.mdc`, `130-crypto-vault.mdc` |
+| 100-199 | `100-dexie-storage.mdc`, `105-graphify-solo-dev.mdc`, `110-external-library-apis.mdc`, `120-rag-workers.mdc` |
+| 200-299 | `200-architecture-limits.mdc`, `201-offline-pwa.mdc`, `202-rag-pipeline.mdc` |
+| 300-399 | `300-react-ui.mdc` |
+| 800-899 | `800-testing-standards.mdc`, `850-mcp-and-prd.mdc` |
+
+## Retention Workflow
+
+After a user correction:
+
+1. Identify the narrowest applicable number range.
+2. Update existing rule or create `NNN-descriptive-name.mdc`.
+3. Append a dated entry to `@.notes/meeting_notes.md` under Agent-Learnings.
+4. Keep `description` ATO-compliant.
+
+<example>
+description: Enforce BYOK vault usage when editing API key or crypto modules
+</example>
+
+<example type="invalid">
+description: This rule is about security and stuff for the whole project always
+</example>

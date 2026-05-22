@@ -3,26 +3,30 @@ import { useState } from 'react';
 import { useLLM } from '../lib/useLLM';
 import { toast } from 'sonner';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useActiveAgent } from '../contexts/AgentContext';
 import { ragService } from '../lib/rag/ragService';
 
 export function RightPanel() {
-  const { isLoaded, isLoading, progress, loadModel, generateStream } = useLLM();
+  const { isLoaded, isLoading, progress, loadModel, ensureModelForRef, generateStream } = useLLM();
   const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const { t } = useLanguage();
+  const { activeAgent } = useActiveAgent();
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return;
     
-    if (!isLoaded && !isLoading) {
-       await loadModel();
-    }
-    
-    // We defer the message sending if we're waiting for the model
-    if (isLoading) {
-        toast.info(t('chat.loading'));
-        return;
+    const modelRef = activeAgent?.model ?? undefined;
+    try {
+      if (modelRef) {
+        await ensureModelForRef(modelRef);
+      } else if (!isLoaded && !isLoading) {
+        await loadModel();
+      }
+    } catch {
+      toast.error(t('chat.loading'));
+      return;
     }
 
     const userMessage = inputValue;
@@ -32,7 +36,7 @@ export function RightPanel() {
     
     setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
-    let systemPrompt = t('chat.systemPrompt');
+    let systemPrompt = activeAgent?.prompt?.trim() || t('chat.systemPrompt');
 
     try {
       // Inject RAG Context

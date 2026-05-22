@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { RefreshCw, Lock } from 'lucide-react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../lib/db';
@@ -56,7 +56,7 @@ export function ZoteroSync() {
     }
   };
 
-  const handleSync = async () => {
+  const handleSync = useCallback(async () => {
     if (!zoteroUserId || !zoteroApiKey) {
       toast.error('Please provide both Zotero User ID and API Key.');
       return;
@@ -64,14 +64,19 @@ export function ZoteroSync() {
 
     setIsSyncing(true);
     try {
+       const controller = new AbortController();
+       const timeoutId = window.setTimeout(() => controller.abort(), 30000);
+
        const response = await fetch(`https://api.zotero.org/users/${zoteroUserId}/items?v=3&format=json&limit=50`, {
          headers: {
            'Zotero-API-Key': zoteroApiKey
-         }
+         },
+         signal: controller.signal,
        });
+       window.clearTimeout(timeoutId);
 
        if (!response.ok) {
-         throw new Error(`Zotero API Error: \${response.statusText}`);
+         throw new Error(`Zotero API Error: ${response.statusText}`);
        }
 
        const data = await response.json();
@@ -80,14 +85,14 @@ export function ZoteroSync() {
        for (const item of data) {
          if (item.data.itemType === 'attachment' || item.data.itemType === 'note') continue;
          
-         const sourceId = `zotero_\${item.key}`;
+         const sourceId = `zotero_${item.key}`;
          const existing = await db.sources.get(sourceId);
          
          if (!existing) {
            await db.sources.put({
              id: sourceId,
              title: item.data.title || 'Untitled',
-             authors: item.data.creators?.map((c: { firstName?: string; lastName?: string; name?: string }) => c.firstName ? `\${c.firstName} \${c.lastName}` : c.name) || ['Unknown'],
+             authors: item.data.creators?.map((c: { firstName?: string; lastName?: string; name?: string }) => c.firstName ? `${c.firstName} ${c.lastName}` : c.name) || ['Unknown'],
              year: item.data.date ? parseInt(item.data.date.substring(0, 4)) : new Date().getFullYear(),
              type: 'zotero',
              addedAt: new Date().toISOString(),
@@ -100,14 +105,24 @@ export function ZoteroSync() {
 
        setSyncStatus({ total: data.length, synced: newSources });
        setLastSync(new Date().toLocaleTimeString());
-       toast.success(`Zotero sync complete. Added \${newSources} new items.`);
+       toast.success(`Zotero sync complete. Added ${newSources} new items.`);
     } catch (err) {
        console.error(err);
        toast.error('Failed to sync with Zotero API.');
     } finally {
        setIsSyncing(false);
     }
-  };
+  }, [zoteroUserId, zoteroApiKey]);
+
+  useEffect(() => {
+    const onSyncRequest = () => {
+      if (zoteroUserId && zoteroApiKey && !isSyncing) {
+        void handleSync();
+      }
+    };
+    window.addEventListener('studyforge:sync-zotero', onSyncRequest);
+    return () => window.removeEventListener('studyforge:sync-zotero', onSyncRequest);
+  }, [zoteroUserId, zoteroApiKey, isSyncing, handleSync]);
 
   return (
     <div className="flex-1 flex flex-col md:flex-row gap-6 overflow-y-auto md:overflow-hidden pb-16 md:pb-0">

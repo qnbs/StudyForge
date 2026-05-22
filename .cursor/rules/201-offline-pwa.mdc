@@ -1,0 +1,44 @@
+---
+description: Apply offline PWA and WebGPU patterns when changing app shell or service worker behavior
+alwaysApply: false
+---
+
+# Offline-First PWA Architecture
+
+## Constraints
+
+- App must function without network after initial PWA install and asset cache.
+- No assumption of REST backend, WebSockets, or cloud document sync.
+- Service worker config lives in `@vite.config.ts` (VitePWA plugin).
+
+## Storage Split
+
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| Metadata | Dexie / IndexedDB | docs, sources, agents, settings, chunks index |
+| Vectors | OPFS | embedding float32 blobs |
+| Secrets | Encrypted IndexedDB | BYOK API keys |
+
+## Compute
+
+- Local LLM via `@src/lib/useLLM.ts` — WebGPU primary, WASM CPU fallback.
+- Do not block UI thread with model load or inference; show loading states.
+
+## Network Usage
+
+- Allowed: optional BYOK provider calls, library metadata fetch, CDN model artifacts (documented in CSP).
+- Forbidden: silent upload of user documents or embeddings.
+
+## PWA Changes
+
+- Manifest/icons in `vite.config.ts` and `public/`.
+- Test offline via DevTools Application → Service Workers after `npm run build && npm run preview`.
+
+<example>
+// Feature works with navigator.onLine === false after cache warm
+</example>
+
+<example type="invalid">
+// Require server session for core writing flow
+await fetch('/api/documents');
+</example>

@@ -1,6 +1,7 @@
 import Dexie, { type Table } from 'dexie';
 import type { Document, Source, Agent, Settings, DocumentChunk } from '../types';
 import type { EncryptedApiKey } from './crypto';
+import { resolveModelPresetKey } from './modelConfig';
 
 export class StudyForgeDatabase extends Dexie {
   documents!: Table<Document, string>;
@@ -19,9 +20,35 @@ export class StudyForgeDatabase extends Dexie {
       settings: 'id',
       documentChunks: 'id, sourceId, documentId, embeddingId',
       secureConfig: 'provider'
-    }).upgrade(() => {
-       // Optional: Add upgrade logic here if needed
     });
+
+    this.version(5)
+      .stores({
+        documents: 'id, title, lastEdited',
+        sources: 'id, title, year, type',
+        agents: 'id, name, role',
+        settings: 'id',
+        documentChunks: 'id, sourceId, documentId, embeddingId',
+        secureConfig: 'provider',
+      })
+      .upgrade(async (tx) => {
+        const settings = await tx.table('settings').toArray();
+        for (const row of settings) {
+          const cfg = row.modelLimitConfig;
+          if (cfg === 'default' || !['low', 'medium', 'high'].includes(cfg)) {
+            const preset = resolveModelPresetKey(cfg);
+            await tx.table('settings').update(row.id, { modelLimitConfig: preset });
+          }
+        }
+
+        const agents = await tx.table('agents').toArray();
+        for (const agent of agents) {
+          if (!['low', 'medium', 'high'].includes(agent.model)) {
+            const preset = resolveModelPresetKey(agent.model);
+            await tx.table('agents').update(agent.id, { model: preset });
+          }
+        }
+      });
   }
 }
 
@@ -35,7 +62,7 @@ export async function initializeDatabase() {
       id: 'global',
       language: 'en',
       theme: 'system',
-      modelLimitConfig: 'default'
+      modelLimitConfig: 'medium'
     });
   }
 
@@ -48,7 +75,7 @@ export async function initializeDatabase() {
         role: 'Peer Review',
         description: 'Critiques structure, methodology, and tone with academic rigor.',
         prompt: 'You are a rigorous peer reviewer specializing in academic literature. Break down my argument and point out logical fallacies or structural weaknesses. Hold the text to the highest standard of academic publishing.',
-        model: 'Llama-3.2-8B',
+        model: 'high',
         isCustom: false,
         createdAt: new Date().toISOString(),
       },
@@ -58,7 +85,7 @@ export async function initializeDatabase() {
         role: 'Literature Review',
         description: 'Combines multiple sources into a cohesive narrative.',
         prompt: 'You are a research assistant tasked with writing a literature review. Given my notes and excerpts, weave them into a single, cohesive narrative that highlights the core themes, contradictions, and gaps in the research.',
-        model: 'Llama-3.2-8B',
+        model: 'high',
         isCustom: false,
         createdAt: new Date().toISOString(),
       },
@@ -68,7 +95,7 @@ export async function initializeDatabase() {
         role: 'Accessibility',
         description: 'Simplifies complex terminology without losing meaning.',
         prompt: 'You are an expert communicator specializing in science communication. Take this highly technical, jargon-dense text and rewrite it so an undergraduate student could clearly understand the core concepts without losing academic integrity.',
-        model: 'Phi-4-mini',
+        model: 'medium',
         isCustom: false,
         createdAt: new Date().toISOString(),
       }

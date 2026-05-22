@@ -142,7 +142,7 @@ export function SecureVaultSettings() {
               <option value={15}>15 Minutes</option>
               <option value={30}>30 Minutes</option>
               <option value={60}>1 Hour</option>
-              <option value={99999999}>Never</option>
+              <option value={120}>2 Hours (max)</option>
            </select>
         </div>
 

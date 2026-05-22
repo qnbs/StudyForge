@@ -51,7 +51,7 @@ export function ResearchPhase() {
                       <FileText className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-medium text-slate-900 leading-tight md:leading-snug line-clamp-2" dangerouslySetInnerHTML={{ __html: source.title }}></h3>
+                      <h3 className="text-sm font-medium text-slate-900 leading-tight md:leading-snug line-clamp-2">{source.title}</h3>
                       <p className="text-xs text-slate-500 mt-1">{source.authors.join(', ')} • {source.year}</p>
                     </div>
                   </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { RightPanel } from './components/RightPanel';
 import { PlanningPhase } from './components/phases/PlanningPhase';
@@ -18,8 +18,27 @@ import { Toaster } from 'sonner';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { useLanguage } from './contexts/LanguageContext';
 
+const VALID_PHASES: WorkflowPhase[] = [
+  'planning',
+  'research',
+  'elaboration',
+  'writing',
+  'library',
+  'agents',
+  'settings',
+  'help',
+];
+
+function phaseFromUrl(): WorkflowPhase | null {
+  const phase = new URLSearchParams(window.location.search).get('phase');
+  if (phase && VALID_PHASES.includes(phase as WorkflowPhase)) {
+    return phase as WorkflowPhase;
+  }
+  return null;
+}
+
 export default function App() {
-  const [activePhase, setActivePhase] = useState<WorkflowPhase>('planning');
+  const [activePhase, setActivePhase] = useState<WorkflowPhase>(() => phaseFromUrl() ?? 'planning');
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isDbInitialized, setIsDbInitialized] = useState(false);
   const { t } = useLanguage();
@@ -28,7 +47,18 @@ export default function App() {
     initializeDatabase().then(() => setIsDbInitialized(true));
   }, []);
 
-  // Global keyboard shortcut
+  useEffect(() => {
+    const urlPhase = phaseFromUrl();
+    if (urlPhase) setActivePhase(urlPhase);
+  }, []);
+
+  const navigatePhase = useCallback((phase: WorkflowPhase) => {
+    setActivePhase(phase);
+    const url = new URL(window.location.href);
+    url.searchParams.set('phase', phase);
+    window.history.replaceState({}, '', url.toString());
+  }, []);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -40,8 +70,28 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  const handleExportLatex = useCallback(() => {
+    navigatePhase('writing');
+    window.dispatchEvent(
+      new CustomEvent('studyforge:export', { detail: { format: 'latex' } })
+    );
+  }, [navigatePhase]);
+
+  const handleSyncZotero = useCallback(() => {
+    navigatePhase('library');
+    window.dispatchEvent(new CustomEvent('studyforge:sync-zotero'));
+  }, [navigatePhase]);
+
   if (!isDbInitialized) {
-    return <div className="flex h-screen w-screen items-center justify-center bg-slate-50"><div className="animate-spin w-8 h-8 rounded-full border-4 border-indigo-600 border-t-transparent"></div></div>;
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-slate-50">
+        <div
+          className="animate-spin w-8 h-8 rounded-full border-4 border-indigo-600 border-t-transparent"
+          role="status"
+          aria-label="Loading"
+        />
+      </div>
+    );
   }
 
   const renderActivePhase = () => {
@@ -70,47 +120,68 @@ export default function App() {
   return (
     <div className="flex h-[100dvh] w-full bg-slate-50 text-slate-900 font-sans overflow-hidden select-none">
       <Toaster position="top-right" richColors closeButton />
-      <CommandPalette 
-        onNavigate={setActivePhase} 
+      <CommandPalette
+        onNavigate={navigatePhase}
+        onExportLatex={handleExportLatex}
+        onSyncZotero={handleSyncZotero}
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
       />
-      <Sidebar activePhase={activePhase} onPhaseChange={setActivePhase} />
-      
+      <Sidebar activePhase={activePhase} onPhaseChange={navigatePhase} />
+
       <main className="flex-1 flex flex-col bg-white overflow-hidden shadow-2xl relative z-10 w-full">
         <header className="h-14 md:h-16 border-b border-slate-200 flex items-center justify-between px-4 md:px-8 flex-shrink-0 bg-white z-20">
           <div className="flex items-center gap-2 md:gap-4">
-            <h2 className="text-slate-900 font-semibold tracking-tight text-sm md:text-base">{t('app.activeProject') || 'Active Project'}</h2>
-            <span className="hidden md:inline text-xs text-slate-400 border-l border-slate-200 pl-4 italic">{t('app.phase') || 'Phase:'} {activePhase}</span>
+            <h2 className="text-slate-900 font-semibold tracking-tight text-sm md:text-base">
+              {t('app.activeProject') || 'Active Project'}
+            </h2>
+            <span className="hidden md:inline text-xs text-slate-400 border-l border-slate-200 pl-4 italic">
+              {t('app.phase') || 'Phase:'} {activePhase}
+            </span>
           </div>
           <div className="flex items-center gap-1.5 md:gap-3">
-            <button 
+            <button
               onClick={() => setIsCommandPaletteOpen(true)}
               className="flex items-center gap-2 px-2 py-1.5 md:px-3 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors border-transparent border md:border-slate-200"
               aria-label="Search or execute command"
             >
-               <Search className="w-4 h-4 md:w-3.5 md:h-3.5" />
-               <span className="hidden md:inline text-xs font-medium">{t('app.searchCmd') || 'Search / Command...'}</span>
-               <div className="hidden md:flex px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[10px] font-mono text-slate-400 items-center gap-0.5 ml-2">
-                 <span>⌘</span>K
-               </div>
+              <Search className="w-4 h-4 md:w-3.5 md:h-3.5" />
+              <span className="hidden md:inline text-xs font-medium">
+                {t('app.searchCmd') || 'Search / Command...'}
+              </span>
+              <div className="hidden md:flex px-1.5 py-0.5 rounded border border-slate-200 bg-white text-[10px] font-mono text-slate-400 items-center gap-0.5 ml-2">
+                <span>⌘</span>K
+              </div>
             </button>
-            <div className="w-px h-4 bg-slate-200 mx-1 hidden md:block"></div>
-            <button className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium text-slate-600 hover:bg-slate-50 rounded border border-slate-200 transition-colors">LaTeX</button>
-            <button className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium bg-slate-900 text-white hover:bg-slate-800 rounded transition-colors whitespace-nowrap">{t('app.export') || 'Export'}</button>
+            <div className="w-px h-4 bg-slate-200 mx-1 hidden md:block" />
+            <button
+              onClick={handleExportLatex}
+              className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium text-slate-600 hover:bg-slate-50 rounded border border-slate-200 transition-colors"
+            >
+              LaTeX
+            </button>
+            <button
+              onClick={() => {
+                navigatePhase('writing');
+                window.dispatchEvent(
+                  new CustomEvent('studyforge:export', { detail: { format: 'md' } })
+                );
+              }}
+              className="px-2 py-1 md:px-3 md:py-1.5 text-[10px] md:text-xs font-medium bg-slate-900 text-white hover:bg-slate-800 rounded transition-colors whitespace-nowrap"
+            >
+              {t('app.export') || 'Export'}
+            </button>
           </div>
         </header>
 
         <div className="overflow-y-auto flex-1 p-4 md:p-8 lg:p-12 bg-slate-50/50 pb-24 md:pb-12">
-          <ErrorBoundary>
-            {renderActivePhase()}
-          </ErrorBoundary>
+          <ErrorBoundary>{renderActivePhase()}</ErrorBoundary>
         </div>
 
         <footer className="h-10 border-t border-slate-200 bg-slate-50 hidden md:flex items-center px-6 justify-between flex-shrink-0">
           <div className="flex items-center gap-4 text-[11px] text-slate-500 font-medium">
             <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-indigo-500" aria-label="System status stable"></span>
+              <span className="w-2 h-2 rounded-full bg-indigo-500" aria-label="System status stable" />
               <span>{t('app.encryption') || 'Encryption: AES-256 (Local Only)'}</span>
             </div>
             <div className="flex items-center gap-1.5">
@@ -118,14 +189,13 @@ export default function App() {
             </div>
           </div>
           <div className="text-[11px] text-slate-400">
-             {t('app.privacyFirst') || 'Privacy First • Runs locally'}
+            {t('app.privacyFirst') || 'Privacy First • Runs locally'}
           </div>
         </footer>
       </main>
 
       <RightPanel />
-      <BottomNav activePhase={activePhase} onPhaseChange={setActivePhase} />
+      <BottomNav activePhase={activePhase} onPhaseChange={navigatePhase} />
     </div>
   );
 }
-

@@ -1,0 +1,12 @@
+# Low-end / solo-dev: skip heavy or generated paths (faster graphify update)
+node_modules/
+dist/
+dev-dist/
+build/
+coverage/
+graphify-out/cache/
+graphify-out/memory/
+graphify-out/wiki/
+*.lock
+package-lock.json
+graphify-out/graph.html

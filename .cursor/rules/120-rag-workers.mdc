@@ -1,0 +1,44 @@
+---
+description: Keep heavy RAG and vector work off the main thread when editing workers or OPFS
+globs: src/lib/rag/**/*.ts,src/lib/opfs.ts,src/workers/**/*.ts
+alwaysApply: false
+---
+
+# RAG Pipeline & Workers
+
+## Worker Boundary
+
+- PDF parsing: `@src/workers/pdfWorker.ts`
+- Embeddings: `@src/workers/embeddingWorker.ts`
+- Main thread orchestrates via `@src/lib/rag/ragService.ts` — no blocking loops in UI code.
+
+<example>
+// Main thread: postMessage to worker, await typed response
+worker.postMessage({ type: 'embed', chunks });
+</example>
+
+<example type="invalid">
+// Main thread: run transformers model synchronously in component
+const embeddings = await pipeline('embed', text);
+</example>
+
+## OPFS Vectors
+
+- Store float32 embedding blobs in OPFS via `@src/lib/opfs.ts`.
+- Keep IndexedDB `documentChunks` for metadata and embeddingId references only.
+- Close/release handles after writes to avoid OPFS leaks.
+
+## Chunking
+
+- Token-aware chunking in `@src/lib/rag/chunking.ts`; reuse constants, do not duplicate magic numbers.
+- Message types defined in `@src/lib/rag/types.ts` — extend there for new worker payloads.
+
+## Performance
+
+- Batch embedding requests where possible.
+- Propagate worker errors to UI with actionable messages; log worker `error` events without document content.
+
+## Testing
+
+- Unit-test chunking and ragService with mocked workers/OPFS.
+- See `@src/lib/rag/chunking.test.ts`, `@src/lib/rag/ragService.test.ts`, `@src/lib/opfs.test.ts`.

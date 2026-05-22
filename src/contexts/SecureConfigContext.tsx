@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
+import { createContext, useContext, useState, useEffect, type ReactNode, useRef } from 'react';
 import { db } from '../lib/db';
 import { decryptApiKey, encryptApiKey } from '../lib/crypto';
 
@@ -10,7 +10,6 @@ interface SecureConfigContextState {
   setMasterPassword: (password: string) => Promise<void>;
   saveApiKey: (providerId: string, apiKey: string) => Promise<void>;
   getApiKey: (providerId: string) => Promise<string | null>;
-  masterPasswordRef: React.MutableRefObject<string | null>;
   inactivityTimeoutMinutes: number;
   setInactivityTimeoutMinutes: (minutes: number) => void;
 }
@@ -18,20 +17,20 @@ interface SecureConfigContextState {
 const SecureConfigContext = createContext<SecureConfigContextState | undefined>(undefined);
 
 const DEFAULT_TIMEOUT_MINUTES = 15;
+const MAX_TIMEOUT_MINUTES = 120;
 
 export function SecureConfigProvider({ children }: { children: ReactNode }) {
   const [hasMasterPasswordSet, setHasMasterPasswordSet] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
-  const [inactivityTimeoutMinutes, setInactivityTimeoutMinutes] = useState(DEFAULT_TIMEOUT_MINUTES);
-  
+  const [inactivityTimeoutMinutes, setInactivityTimeoutMinutesState] = useState(DEFAULT_TIMEOUT_MINUTES);
+
   const masterPasswordRef = useRef<string | null>(null);
   const lastActivityTime = useRef<number>(0);
   const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
     lastActivityTime.current = Date.now();
-    // Check if a master password hash indicator exists in DB (we'll just use a 'master' provider entry as a flag for now)
-    db.secureConfig.get('master_check').then(entry => {
+    db.secureConfig.get('master_check').then((entry) => {
       setHasMasterPasswordSet(!!entry);
     });
   }, []);
@@ -45,44 +44,52 @@ export function SecureConfigProvider({ children }: { children: ReactNode }) {
     setIsUnlocked(false);
   };
 
+  const setInactivityTimeoutMinutes = (minutes: number) => {
+    const clamped = Math.min(Math.max(minutes, 1), MAX_TIMEOUT_MINUTES);
+    setInactivityTimeoutMinutesState(clamped);
+  };
+
   useEffect(() => {
-     const handleActivity = () => resetActivity();
-     window.addEventListener('mousemove', handleActivity);
-     window.addEventListener('keydown', handleActivity);
-     window.addEventListener('click', handleActivity);
-     
-     return () => {
-         window.removeEventListener('mousemove', handleActivity);
-         window.removeEventListener('keydown', handleActivity);
-         window.removeEventListener('click', handleActivity);
-     };
+    const handleActivity = () => resetActivity();
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+    window.addEventListener('click', handleActivity);
+
+    return () => {
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+      window.removeEventListener('click', handleActivity);
+    };
   }, []);
 
   useEffect(() => {
-     if (isUnlocked) {
-         timerRef.current = window.setInterval(() => {
-             const idleTime = Date.now() - lastActivityTime.current;
-             if (idleTime > inactivityTimeoutMinutes * 60 * 1000) {
-                 lock();
-             }
-         }, 60000); // check every minute
-     } else if (timerRef.current !== null) {
-         window.clearInterval(timerRef.current);
-         timerRef.current = null;
-     }
+    if (isUnlocked) {
+      timerRef.current = window.setInterval(() => {
+        const idleTime = Date.now() - lastActivityTime.current;
+        if (idleTime > inactivityTimeoutMinutes * 60 * 1000) {
+          lock();
+        }
+      }, 60000);
+    } else if (timerRef.current !== null) {
+      window.clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
 
-     return () => {
-         if (timerRef.current !== null) {
-             window.clearInterval(timerRef.current);
-             timerRef.current = null;
-         }
-     }
+    return () => {
+      if (timerRef.current !== null) {
+        window.clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
   }, [isUnlocked, inactivityTimeoutMinutes]);
 
   const unlock = async (password: string) => {
     try {
       const entry = await db.secureConfig.get('master_check');
-      if (!entry) return false;
+      if (!entry) {
+        await encryptApiKey('timing_probe', password, '_timing_probe');
+        return false;
+      }
       await decryptApiKey(entry, password);
       masterPasswordRef.current = password;
       setIsUnlocked(true);
@@ -94,7 +101,9 @@ export function SecureConfigProvider({ children }: { children: ReactNode }) {
   };
 
   const setMasterPassword = async (password: string) => {
-    // Encrypt a dummy value to verify the password later
+    if (password.length < 8) {
+      throw new Error('Master password must be at least 8 characters');
+    }
     const entry = await encryptApiKey('master_check_validation', password, 'master_check');
     await db.secureConfig.put(entry);
     masterPasswordRef.current = password;
@@ -104,7 +113,7 @@ export function SecureConfigProvider({ children }: { children: ReactNode }) {
   };
 
   const saveApiKey = async (providerId: string, apiKey: string) => {
-    if (!masterPasswordRef.current) throw new Error("Vault is locked");
+    if (!masterPasswordRef.current) throw new Error('Vault is locked');
     const entry = await encryptApiKey(apiKey, masterPasswordRef.current, providerId);
     await db.secureConfig.put(entry);
     resetActivity();
@@ -124,18 +133,19 @@ export function SecureConfigProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <SecureConfigContext.Provider value={{ 
-        hasMasterPasswordSet, 
-        isUnlocked, 
-        unlock, 
-        lock, 
-        setMasterPassword, 
-        saveApiKey, 
-        getApiKey, 
-        masterPasswordRef,
+    <SecureConfigContext.Provider
+      value={{
+        hasMasterPasswordSet,
+        isUnlocked,
+        unlock,
+        lock,
+        setMasterPassword,
+        saveApiKey,
+        getApiKey,
         inactivityTimeoutMinutes,
-        setInactivityTimeoutMinutes
-    }}>
+        setInactivityTimeoutMinutes,
+      }}
+    >
       {children}
     </SecureConfigContext.Provider>
   );

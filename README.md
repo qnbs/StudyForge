@@ -26,12 +26,12 @@ Your academic data, intellectual property, and research literature never leave y
 ### 🧠 Heterogeneous Local RAG (Retrieval-Augmented Generation) Pipeline
 Forget slow server round-trips. StudyForge embeds a seamless local indexing engine utilizing custom Web Workers.
 * **Xenova/Transformers Integration**: Parses, chunks, and semantically embeds massive PDFs utilizing zero-latency WASM threads.
-* **Hybrid Search Topologies**: Intelligently correlates semantic query embeddings with your local document corpus for highly accurate, context-aware synthesis.
+* **Hybrid Search (BM25 + RRF)**: Dense cosine similarity and sparse BM25 keyword scores are fused via Reciprocal Rank Fusion (`queryRAGHybrid`) for sharper retrieval on technical PDFs.
 * **Asynchronous Chunking**: Background web-workers ensure the main UI thread remains fluid at 60 FPS, even while indexing a 500-page academic journal.
 
 ### ⚙️ Unleashed Computation: WebGPU & Model Execution
 At the core of the reasoning engine lies `wllama` and the WebGPU standard, allowing raw silicon access.
-* **Browser-Native Quantized Models**: Seamlessly caches and evaluates quantized intelligence models (e.g., Llama 3.2, Phi-4). 
+* **Wllama Model Presets**: Agents and settings map to `low` / `medium` / `high` GGUF presets (Llama 3.2 1B, Phi 3.5 Mini, Llama 3.1 8B) with legacy name migration on DB upgrade.
 * **Dynamic VRAM Scaling**: Built-in logic to gracefully fallback to WASM (CPU) runtimes if GPU memory is insufficient, maximizing hardware compatibility without catastrophic failure.
 * **Smart Context Bridging**: Chat interfaces intelligently orchestrate prompt wrappers, system roles, and retrieved context chunks to output precise academic prose.
 

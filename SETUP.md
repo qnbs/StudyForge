@@ -31,10 +31,22 @@ If you are using an older version of Chrome or a browser where WebGPU is disable
 3. Set the `Unsafe WebGPU` or `WebGPU` flag to **Enabled**.
 4. Restart your browser.
 
+## Hybrid RAG Retrieval
+
+After vectorization, queries use **hybrid search**:
+
+1. **BM25** ranks chunks by keyword overlap with your question.
+2. **Dense vectors** rank by cosine similarity in OPFS.
+3. **RRF (k=60)** merges both lists without tuning score scales.
+
+Implementation: `src/lib/rag/hybridSearch.ts`, invoked from `ragService.queryRAG()`.
+
+---
+
 ## Selecting the Right LLM Quantization
 
 StudyForge defaults to using `Wllama` to execute HuggingFace GGUF models directly on WebGPU.
-When you enter the **Settings** menu inside the app, you can choose from different model preset queues:
+When you enter the **Settings** menu inside the app, you can choose from different model preset queues (`low` / `medium` / `high`):
 
 | Preset | Model Type | Size | Ideal for |
 |--------|------------|------|-----------|

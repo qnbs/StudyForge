@@ -1,0 +1,41 @@
+---
+description: Follow PDF-to-RAG data flow when changing ingestion retrieval or embedding logic
+alwaysApply: false
+---
+
+# RAG Pipeline Data Flow
+
+Canonical flow from `@ARCHITECTURE.md`:
+
+```
+PDF pick → pdfWorker (text) → chunking → embeddingWorker → OPFS store → ragService query
+```
+
+## Stages
+
+1. **Ingest** — User selects PDF via Research/Library phase; file stays local.
+2. **Parse** — `pdfWorker` extracts plain text only (no script execution).
+3. **Chunk** — `chunking.ts` splits text; persist chunk metadata in Dexie `documentChunks`.
+4. **Embed** — `embeddingWorker` runs Xenova model; output float32 arrays.
+5. **Store** — Vectors written to OPFS; `embeddingId` links chunk row to blob.
+6. **Query** — `ragService` loads relevant vectors, cosine similarity (`@src/lib/utils/cosineSimilarity.ts`), injects context into LLM prompt.
+
+## Invariants
+
+- Query path must work offline once vectors exist.
+- Re-embedding invalidates old OPFS blobs — delete orphaned vectors on re-ingest.
+- Worker message contracts stay in `@src/lib/rag/types.ts`.
+
+## UI Integration
+
+- Research phase triggers ingest; Writing/Agent phases consume RAG context.
+- Show per-document vectorization status (`isVectorized` on `Source`).
+
+<example>
+await ragService.indexDocument(docId, pdfFile);
+const chunks = await ragService.query(userQuery, topK);
+</example>
+
+<example type="invalid">
+await fetch('/api/embed', { body: pdfFile }); // no server embedding
+</example>

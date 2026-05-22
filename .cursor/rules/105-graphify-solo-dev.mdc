@@ -1,0 +1,61 @@
+---
+description: Apply solo-dev graphify policy when updating graph snapshots or exploring architecture
+alwaysApply: false
+---
+
+# Graphify — Solo-Dev & Low-End Hardware
+
+StudyForge **deviates** from official Graphify team recommendations. This is intentional: **solo developer**, **low-end local machine**, **remote gets one current snapshot only**.
+
+## Remote Git Policy (contrary to upstream team docs)
+
+| Commit to GitHub | Never commit |
+|------------------|--------------|
+| `graphify-out/graph.json` | `graphify-out/cache/` |
+| `graphify-out/GRAPH_REPORT.md` | `graphify-out/memory/` |
+| | `graphify-out/wiki/` |
+| | `graphify-out/graph.html` |
+| | Graph version history / incremental memory |
+
+**Replace, don't accumulate:** Each push should reflect the **latest** `graphify update` only. No historical graph snapshots in the repo.
+
+## Low-End Dev Modus Operandi
+
+- **Use:** `npm run graphify:refresh` (AST-only, no LLM cost)
+- **Avoid:** `graphify watch` (continuous CPU/disk)
+- **Avoid:** `graphify hook install` (auto rebuild every commit)
+- **Avoid:** `graphify save-result` / `graphify-out/memory/` (feedback-loop history)
+- **Prefer:** Read `graphify-out/GRAPH_REPORT.md` before opening many source files
+- **CLI queries:** `graphify query "<question>" --budget 1500` to cap tokens on weak hardware
+- **MCP:** Default `.mcp.example.json` = graphify only. Enable `code-review-graph` via `.mcp.example.full.json` only on capable machines (embeddings are heavy).
+
+## When to Refresh
+
+Run refresh **before** `git push` when `src/`, `lib/`, or `workers/` changed materially:
+
+```bash
+npm run graphify:refresh
+git add graphify-out/graph.json graphify-out/GRAPH_REPORT.md
+```
+
+Agents may run refresh after large refactors in-session; do not run in parallel with `npm run dev` on low-end RAM.
+
+## Agent Navigation Order
+
+1. `graphify-out/GRAPH_REPORT.md` (god nodes, communities)
+2. `graphify query` or MCP `graphify-studyforge` (budget-capped)
+3. Targeted `@src/...` file reads
+4. Broad `grep` only as last resort
+
+<example>
+npm run graphify:refresh && git add graphify-out/graph.json graphify-out/GRAPH_REPORT.md
+</example>
+
+<example type="invalid">
+git add graphify-out/cache/ graphify-out/memory/   # bloats remote, breaks solo policy
+graphify watch .   # continuous rebuild on low-end laptop
+</example>
+
+## Ignore Extraction Bloat
+
+`@.graphifyignore` excludes `node_modules/`, `dist/`, locks, and local cache paths for faster updates.

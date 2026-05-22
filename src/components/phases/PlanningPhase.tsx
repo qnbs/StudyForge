@@ -2,16 +2,16 @@ import { UploadCloud, FileText, CheckCircle2 } from 'lucide-react';
 
 export function PlanningPhase() {
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
+    <div className="max-w-4xl mx-auto space-y-6 md:space-y-8 animate-in fade-in duration-500 pb-16 md:pb-0">
       <div>
-        <h1 className="text-3xl font-display font-bold text-slate-900 tracking-tight">Project Planning</h1>
-        <p className="mt-2 text-slate-500">Define the scope, upload your guidelines, and let the AI extract requirements locally.</p>
+        <h1 className="text-2xl md:text-3xl font-display font-bold text-slate-900 tracking-tight">Project Planning</h1>
+        <p className="mt-1 md:mt-2 text-sm md:text-base text-slate-500">Define the scope, upload your guidelines, and let the AI extract requirements locally.</p>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Smart Upload</h2>
+      <div className="bg-white border border-slate-200 rounded-xl p-5 md:p-8 shadow-sm">
+        <h2 className="text-base md:text-lg font-semibold text-slate-900 mb-4">Smart Upload</h2>
         
-        <div className="border-2 border-dashed border-slate-300 rounded-xl p-10 flex flex-col items-center justify-center text-center hover:bg-slate-50 hover:border-indigo-400 transition-colors cursor-pointer group">
+        <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 md:p-10 flex flex-col items-center justify-center text-center hover:bg-slate-50 hover:border-indigo-400 transition-colors cursor-pointer group">
           <div className="bg-indigo-50 p-4 rounded-full text-indigo-600 mb-4 group-hover:bg-indigo-100 transition-colors">
             <UploadCloud className="w-8 h-8" />
           </div>

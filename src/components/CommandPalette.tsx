@@ -5,10 +5,11 @@ import { useLanguage } from '../contexts/LanguageContext';
 
 interface CommandPaletteProps {
   onNavigate: (phase: WorkflowPhase) => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export function CommandPalette({ onNavigate }: CommandPaletteProps) {
-  const [isOpen, setIsOpen] = useState(false);
+export function CommandPalette({ onNavigate, isOpen, onClose }: CommandPaletteProps) {
   const [search, setSearch] = useState('');
   const { t } = useLanguage();
 
@@ -16,13 +17,15 @@ export function CommandPalette({ onNavigate }: CommandPaletteProps) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        setIsOpen((prev) => !prev);
+        // Since we don't have toggling functionality from within here anymore, 
+        // we'll rely on App to pass a custom event or let App handle the hotkey instead.
+        // Actually, we can dispatch a custom event and let App capture it.
       }
-      if (e.key === 'Escape') setIsOpen(false);
+      if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -42,7 +45,7 @@ export function CommandPalette({ onNavigate }: CommandPaletteProps) {
   const filtered = commands.filter(c => c.label.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-start justify-center pt-[20vh] p-4" onClick={() => setIsOpen(false)}>
+    <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-start justify-center pt-[20vh] p-4" onClick={onClose}>
       <div className="bg-white w-full max-w-lg rounded-xl shadow-2xl border border-slate-200 overflow-hidden" onClick={e => e.stopPropagation()}>
         <div className="px-4 py-3 border-b border-slate-200 flex items-center gap-3">
           <Search className="w-5 h-5 text-slate-400" />
@@ -67,7 +70,7 @@ export function CommandPalette({ onNavigate }: CommandPaletteProps) {
                 key={cmd.id}
                 onClick={() => {
                   if (cmd.type === 'nav') onNavigate(cmd.id as WorkflowPhase);
-                  setIsOpen(false);
+                  onClose();
                   setSearch('');
                 }}
                 className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-slate-50 text-left transition-colors group"

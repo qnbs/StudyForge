@@ -644,19 +644,19 @@ export function LibraryPhase() {
       )}
 
       {activeTab === 'zotero' && (
-        <div className="flex-1 flex gap-6 overflow-hidden">
-          <div className="w-1/3 bg-white border border-slate-200 rounded-xl shadow-sm p-8 flex flex-col items-center justify-center text-center shrink-0 h-fit">
-            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6 border border-red-100">
-              <span className="text-2xl font-bold text-red-500 font-serif">Z</span>
+        <div className="flex-1 flex flex-col md:flex-row gap-6 overflow-y-auto md:overflow-hidden pb-16 md:pb-0">
+          <div className="w-full md:w-1/3 bg-white border border-slate-200 rounded-xl shadow-sm p-6 md:p-8 flex flex-col items-center justify-center text-center shrink-0 h-fit">
+            <div className="w-12 h-12 md:w-16 md:h-16 bg-red-50 rounded-full flex items-center justify-center mb-4 md:mb-6 border border-red-100">
+              <span className="text-xl md:text-2xl font-bold text-red-500 font-serif">Z</span>
             </div>
-            <h2 className="text-xl font-semibold text-slate-900 mb-2">Connect to Zotero</h2>
-            <p className="text-slate-500 max-w-md mb-6 text-sm">
+            <h2 className="text-lg md:text-xl font-semibold text-slate-900 mb-2">Connect to Zotero</h2>
+            <p className="text-slate-500 max-w-md mb-4 md:mb-6 text-xs md:text-sm">
               Sync your Zotero collections directly into your local database.
             </p>
             <div className="space-y-3 w-full">
-              <input type="text" placeholder="Zotero User ID" className="w-full bg-slate-50 border border-slate-200 px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              <input type="password" placeholder="Zotero API Key" className="w-full bg-slate-50 border border-slate-200 px-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              <button className="w-full bg-slate-900 text-white font-medium py-2 rounded-lg hover:bg-slate-800 transition-colors flex justify-center items-center gap-2">
+              <input type="text" placeholder="Zotero User ID" className="w-full bg-slate-50 border border-slate-200 px-4 py-2.5 md:py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <input type="password" placeholder="Zotero API Key" className="w-full bg-slate-50 border border-slate-200 px-4 py-2.5 md:py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+              <button className="w-full bg-slate-900 text-white font-medium py-2.5 md:py-2 rounded-lg hover:bg-slate-800 transition-colors flex justify-center items-center gap-2 text-sm">
                 <RefreshCw className="w-4 h-4" /> Connect & Sync
               </button>
             </div>
@@ -664,37 +664,40 @@ export function LibraryPhase() {
           
           <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col overflow-hidden">
             <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-              <h2 className="font-semibold text-slate-900 text-sm">Sync Status Dashboard</h2>
-              <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded">Last synced 2h ago</span>
+              <h2 className="font-semibold text-slate-900 text-sm">Sync Status</h2>
+              <span className="text-[10px] md:text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded">Last synced 2h ago</span>
             </div>
-            <div className="p-6 overflow-y-auto space-y-6">
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">
-                  <p className="text-3xl font-display font-bold text-slate-900">34</p>
-                  <p className="text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Total Items</p>
+            <div className="p-4 md:p-6 overflow-y-auto space-y-6">
+              <div className="grid grid-cols-3 gap-2 md:gap-4">
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 md:p-4 text-center">
+                  <p className="text-xl md:text-3xl font-display font-bold text-slate-900">34</p>
+                  <p className="text-[9px] md:text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Items</p>
                 </div>
-                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-center">
-                  <p className="text-3xl font-display font-bold text-emerald-600">32</p>
-                  <p className="text-xs text-emerald-600/80 font-medium uppercase tracking-wider mt-1">Synced</p>
+                <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 md:p-4 text-center">
+                  <p className="text-xl md:text-3xl font-display font-bold text-emerald-600">32</p>
+                  <p className="text-[9px] md:text-xs text-emerald-600/80 font-medium uppercase tracking-wider mt-1">Synced</p>
                 </div>
-                <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-4 text-center">
-                  <p className="text-3xl font-display font-bold text-yellow-600">2</p>
-                  <p className="text-xs text-yellow-600/80 font-medium uppercase tracking-wider mt-1">Conflicts</p>
+                <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-3 md:p-4 text-center">
+                  <p className="text-xl md:text-3xl font-display font-bold text-yellow-600">2</p>
+                  <p className="text-[9px] md:text-xs text-yellow-600/80 font-medium uppercase tracking-wider mt-1">Conflicts</p>
                 </div>
               </div>
               
               <div>
-                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Recent Activity</h3>
-                <div className="space-y-3">
+                <h3 className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2 md:mb-3">Recent Activity</h3>
+                <div className="space-y-2 md:space-y-3">
                   {[
-                    { msg: "Synced 'Deep Learning in Academia'", time: "2 hours ago", status: "success" },
-                    { msg: "Synced 'WebGPU performance metrics'", time: "2 hours ago", status: "success" },
-                    { msg: "Conflict resolution needed: 'Smith_2024.pdf'", time: "2 hours ago", status: "conflict" }
+                    { msg: "Synced 'Deep Learning in Academia'", time: "2h ago", status: "success" },
+                    { msg: "Synced 'WebGPU performance metrics'", time: "2h ago", status: "success" },
+                    { msg: "Conflict resolution needed: 'Smith_2024.pdf'", time: "2h ago", status: "conflict" }
                   ].map((log, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-lg shadow-sm">
-                      <div className={`w-2 h-2 rounded-full ${log.status === 'success' ? 'bg-emerald-500' : 'bg-yellow-500'}`} />
-                      <p className="text-sm text-slate-700 flex-1">{log.msg}</p>
-                      <span className="text-xs text-slate-400">{log.time}</span>
+                    <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 p-3 bg-white border border-slate-200 rounded-lg shadow-sm">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full shrink-0 ${log.status === 'success' ? 'bg-emerald-500' : 'bg-yellow-500'}`} />
+                        <span className="text-xs text-slate-400 sm:hidden">{log.time}</span>
+                      </div>
+                      <p className="text-[11px] md:text-sm text-slate-700 flex-1 ml-4 sm:ml-0">{log.msg}</p>
+                      <span className="hidden sm:block text-xs text-slate-400 whitespace-nowrap">{log.time}</span>
                     </div>
                   ))}
                 </div>
@@ -705,25 +708,25 @@ export function LibraryPhase() {
       )}
 
       {activeTab === 'mendeley' && (
-        <div className="flex-1 flex gap-6 overflow-hidden">
-          <div className="w-1/3 bg-white border border-slate-200 rounded-xl shadow-sm p-8 flex flex-col items-center justify-center text-center shrink-0 h-fit">
-            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6 border border-red-100">
-              <span className="text-2xl font-bold text-red-700 font-serif">M</span>
+        <div className="flex-1 flex flex-col md:flex-row gap-6 overflow-y-auto md:overflow-hidden pb-16 md:pb-0">
+          <div className="w-full md:w-1/3 bg-white border border-slate-200 rounded-xl shadow-sm p-6 md:p-8 flex flex-col items-center justify-center text-center shrink-0 h-fit">
+            <div className="w-12 h-12 md:w-16 md:h-16 bg-red-50 rounded-full flex items-center justify-center mb-4 md:mb-6 border border-red-100">
+              <span className="text-xl md:text-2xl font-bold text-red-700 font-serif">M</span>
             </div>
-            <h2 className="text-xl font-semibold text-slate-900 mb-2">Connect to Mendeley</h2>
-            <p className="text-slate-500 max-w-md mb-6 text-sm">
+            <h2 className="text-lg md:text-xl font-semibold text-slate-900 mb-2">Connect to Mendeley</h2>
+            <p className="text-slate-500 max-w-md mb-4 md:mb-6 text-xs md:text-sm">
               Authenticate with your Mendeley account to import your library. 
             </p>
             <div className="space-y-3 w-full">
-              <button className="w-full bg-[#9E002B] text-white font-medium py-2 rounded-lg hover:bg-red-800 transition-colors flex justify-center items-center gap-2">
+              <button className="w-full bg-[#9E002B] text-white font-medium py-2.5 md:py-2 rounded-lg hover:bg-red-800 transition-colors flex justify-center items-center gap-2 text-sm">
                  Authenticate via OAuth
               </button>
             </div>
           </div>
 
-          <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl border-dashed flex flex-col items-center justify-center text-center p-8">
-             <Database className="w-8 h-8 text-slate-300 mb-3" />
-             <p className="text-slate-500 text-sm">Authenticate with Mendeley to view sync status and item history.</p>
+          <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl border-dashed flex flex-col items-center justify-center text-center p-6 md:p-8 min-h-[200px]">
+             <Database className="w-6 h-6 md:w-8 md:h-8 text-slate-300 mb-2 md:mb-3" />
+             <p className="text-slate-500 text-xs md:text-sm px-4">Authenticate with Mendeley to view sync status and item history.</p>
           </div>
         </div>
       )}

@@ -1,29 +1,62 @@
-# StudyForge
+# 📚 StudyForge
 
-## English
+[![Status](https://img.shields.io/badge/status-active-success.svg)]()
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![Standard](https://img.shields.io/badge/Standard-Semantic%20Versioning-informational.svg)](CHANGELOG.md)
 
-**StudyForge** is a fully local, offline-first, privacy-first Progressive Web Application (PWA) designed to serve as an AI-assisted co-pilot for academic writing and research. 
-
-### Key Features
-- **Privacy-First:** Models run entirely in your browser using WebGPU and WebLLM. No data leaves your machine.
-- **RAG & Semantic Search:** Embeds your uploaded PDFs locally and retrieves relevant context without cloud services.
-- **Agent Workshop:** Create and customize AI personas (Reviewers, Critics, Summarizers) tailored to your workflow.
-- **Zotero & Mendeley Sync:** Import references seamlessly into your local indexed database.
-- **Cross-Platform:** Works on Desktop and Mobile devices natively as a PWA, featuring a completely responsive UI.
-- **Bilingual Support:** Fully supported in English and German.
-- **Exports:** Native support to export to LaTeX, PDF, and DOCX (under construction).
+[English](#english) | [Deutsch](#deutsch)
 
 ---
 
-## Deutsch
+<br />
 
-**StudyForge** ist eine zu 100 % lokale, offline-fähige Progressive Web App (PWA) mit "Privacy-First"-Fokus, die als KI-gestützter Co-Pilot für wissenschaftliches Schreiben und Recherchieren dient.
+<h2 id="english">🇺🇸 English</h2>
 
-### Hauptfunktionen
-- **Privacy-First:** Modelle laufen komplett im Browser via WebGPU und WebLLM. Keine Daten verlassen dein Endgerät.
-- **RAG & Semantische Suche:** Vektorisiert deine PDFs lokal und nutzt semantische Suche ganz ohne Cloud-Anbindung.
-- **Agenten-Werkstatt:** Erstelle benutzerdefinierte KI-Personas (Lektoren, Kritiker, Zusammenfasser).
-- **Zotero- & Mendeley-Sync:** Importiere Literatur nahtlos in deine lokale IndexedDB.
-- **Plattformübergreifend:** Funktioniert als PWA nativ auf Desktop und Mobile, mit einem voll-responsiven Design inkl. Bottom-Navigation.
-- **Zweisprachig:** Komplett auf Englisch und Deutsch nutzbar.
-- **Exporte:** Direkter Export zu LaTeX, PDF und DOCX (in Entwicklung).
+**StudyForge** is a fully local, offline-first, privacy-respecting Progressive Web Application (PWA) designed to serve as an AI-assisted co-pilot for academic writing and research. It runs Large Language Models (LLMs) and advanced Retrieval-Augmented Generation (RAG) directly in your browser. 
+
+### 🌟 Key Features
+
+*   🔒 **Zero-Trust Privacy:** Models run entirely in your browser using **WebGPU** and **WebLLM**. No data (text or PDFs) ever leaves your machine. Your research is yours.
+*   🧠 **Local RAG & Semantic Search:** Securely vectorize and embed your uploaded PDFs locally. Retrieve relevant academic context without cloud APIs.
+*   🤖 **Agent Workshop:** Create, configure, and customize AI personas (Reviewers, Critics, Summarizers, Translators) tailored to your exact workflow.
+*   📚 **Reference Sync:** Native integrations for **Zotero** and **Mendeley** via OAuth/API. Import metadata seamlessly into your local IndexedDB for offline access.
+*   📱 **Cross-Platform PWA:** Works natively on Desktop, Tablet, and Mobile with a fully responsive, modern layout (including bottom navigation for mobile).
+*   🌍 **Bilingual Support:** Full interface localization in English and German.
+*   📄 **Extensive Exports:** Direct export support for **LaTeX**, PDF, and structured Markdown files (DOCX coming soon).
+
+### 📖 Documentation
+
+Detailed documentation on the repository and its architecture can be found in the associated files:
+*   [Architecture Overview](ARCHITECTURE.md)
+*   [Changelog](CHANGELOG.md)
+*   [Contributing Guidelines](CONTRIBUTING.md)
+*   [Security Policy](SECURITY.md)
+*   [Code of Conduct](CODE_OF_CONDUCT.md)
+*   [Architectural Decision Records (ADRs)](docs/ADR/)
+
+### 🚀 Getting Started
+
+Simply run the development server or open the built application. Setup requires modern browsers (Chrome/Edge/Safari) with WebGPU enabled to leverage the local AI capabilities fully.
+
+---
+
+<br />
+
+<h2 id="deutsch">🇩🇪 Deutsch</h2>
+
+**StudyForge** ist eine zu 100 % lokale, offline-fähige Progressive Web App (PWA) mit kompromisslosem "Privacy-First"-Fokus. Sie dient als KI-gestützter Co-Pilot für wissenschaftliches Schreiben und Recherchieren, der Sprachmodelle (LLMs) direkt in deinem Browser ausführt.
+
+### 🌟 Hauptfunktionen
+
+*   🔒 **Zero-Trust Datenschutz:** Modelle laufen komplett im Browser via **WebGPU** und **WebLLM**. Keine Dokumente, Prompts oder Daten verlassen dein Endgerät.
+*   🧠 **Lokales RAG & Semantische Suche:** Vektorisiert deine PDFs lokal (via OPFS) und nutzt eine semantische Suchmaschine (RAG) absolut ohne Cloud-Anbindung.
+*   🤖 **Agenten-Werkstatt:** Erstelle benutzerdefinierte KI-Personas (Lektoren, Kritiker, Übersetzer), die deine Arbeitsweise exakt ergänzen.
+*   📚 **Zotero- & Mendeley-Sync:** Importiere Literatur und Metadaten nahtlos via API/OAuth in deine lokale IndexedDB für den unkomplizierten Offline-Einstieg.
+*   📱 **Plattformübergreifende PWA:** Installierbare Web-App für Desktop, Tablet und Smartphone mit voll-responsivem Design (inkl. "Bottom-Nav" auf Mobilgeräten).
+*   🌍 **Zweisprachig:** Komplette Benutzeroberfläche wahlweise auf Englisch oder Deutsch.
+*   📄 **Umfangreiche Exporte:** Direkter, nativer Export zu Projektstrukturen als **LaTeX**, PDF und Markdown (DOCX in Entwicklung).
+
+### 📖 Dokumentation
+
+Detaillierte Informationen und Dokumentationen zur Architektur finden sich in den entsprechenden Projektdateien (s. Übersicht im englischen Teil).

@@ -2,49 +2,53 @@ import { Bold, Italic, Link2, Quote, Sparkles, BookMarked, Settings2, PenTool } 
 
 export function WritingPhase() {
   return (
-    <div className="max-w-4xl mx-auto h-full flex flex-col animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mb-6">
+    <div className="max-w-4xl mx-auto h-full flex flex-col animate-in fade-in duration-500 pb-16 md:pb-0">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 md:mb-6 gap-2 md:gap-0 shrink-0">
         <div>
-          <h1 className="text-3xl font-display font-bold text-slate-900 tracking-tight">Writing Editor</h1>
-          <p className="mt-1 text-slate-500 text-sm">Draft, humanize, and refine your text with local AI assistance.</p>
+          <h1 className="text-2xl md:text-3xl font-display font-bold text-slate-900 tracking-tight">Writing Editor</h1>
+          <p className="mt-1 text-slate-500 text-xs md:text-sm">Draft, humanize, and refine your text with local AI assistance.</p>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded">Autosaved to IndexedDB</span>
-          <button className="text-slate-400 hover:text-slate-600 p-2">
-            <Settings2 className="w-5 h-5" />
+        <div className="flex items-center gap-3 self-start md:self-auto">
+          <span className="text-[10px] md:text-xs font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">Autosaved locally</span>
+          <button className="text-slate-400 hover:text-slate-600 p-2 bg-white rounded-lg border border-slate-200 md:border-transparent md:bg-transparent shadow-sm md:shadow-none">
+            <Settings2 className="w-4 h-4 md:w-5 md:h-5" />
           </button>
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col overflow-hidden rounded-xl border border-slate-200">
+      <div className="flex-1 flex flex-col overflow-hidden rounded-xl border border-slate-200 bg-white">
         {/* Formatting Toolbar */}
-        <div className="p-2 border-b border-slate-200 bg-white flex items-center gap-1 flex-wrap shrink-0">
-          <button className="p-2 text-slate-600 hover:bg-slate-100 rounded transition-colors"><Bold className="w-4 h-4" /></button>
-          <button className="p-2 text-slate-600 hover:bg-slate-100 rounded transition-colors"><Italic className="w-4 h-4" /></button>
+        <div className="p-2 border-b border-slate-200 bg-slate-50/80 flex items-center gap-1 flex-wrap shrink-0">
+          <div className="flex items-center gap-1">
+            <button className="p-2 text-slate-600 hover:bg-slate-200 rounded transition-colors"><Bold className="w-4 h-4" /></button>
+            <button className="p-2 text-slate-600 hover:bg-slate-200 rounded transition-colors"><Italic className="w-4 h-4" /></button>
+          </div>
           <div className="w-px h-5 bg-slate-200 mx-1"></div>
-          <button className="p-2 text-slate-600 hover:bg-slate-100 rounded transition-colors flex items-center gap-2 text-xs font-medium">
-            <Quote className="w-4 h-4" /> Cite
-          </button>
-          <button className="p-2 text-slate-600 hover:bg-slate-100 rounded transition-colors flex items-center gap-2 text-xs font-medium">
-            <Link2 className="w-4 h-4" /> Link
-          </button>
-          <div className="w-px h-5 bg-slate-200 mx-1"></div>
-          
-          <div className="ml-auto flex gap-2">
-            <button className="flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-indigo-100 transition-colors">
-              <Sparkles className="w-4 h-4" />
-              Rephrase (Local AI)
+          <div className="flex items-center gap-1">
+            <button className="p-2 text-slate-600 hover:bg-slate-200 rounded transition-colors flex items-center gap-1.5 text-[11px] md:text-xs font-medium">
+              <Quote className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Cite</span>
             </button>
-            <button className="flex items-center gap-2 bg-slate-100 border border-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-slate-200 transition-colors">
-              <PenTool className="w-4 h-4" />
+            <button className="p-2 text-slate-600 hover:bg-slate-200 rounded transition-colors flex items-center gap-1.5 text-[11px] md:text-xs font-medium">
+              <Link2 className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Link</span>
+            </button>
+          </div>
+          <div className="hidden sm:block w-px h-5 bg-slate-200 mx-1"></div>
+          
+          <div className="ml-auto flex gap-1.5 md:gap-2">
+            <button className="flex items-center gap-1.5 md:gap-2 bg-indigo-50 border border-indigo-100 text-indigo-700 px-2 md:px-3 py-1.5 rounded-lg text-[11px] md:text-xs font-medium hover:bg-indigo-100 transition-colors">
+              <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="hidden sm:inline">Rephrase </span>(AI)
+            </button>
+            <button className="hidden sm:flex items-center gap-1.5 md:gap-2 bg-white border border-slate-200 text-slate-700 px-2 md:px-3 py-1.5 rounded-lg text-[11px] md:text-xs font-medium hover:bg-slate-50 transition-colors shadow-sm">
+              <PenTool className="w-3.5 h-3.5 md:w-4 md:h-4" />
               Humanize Text
             </button>
           </div>
         </div>
 
         {/* Editor Area */}
-        <div className="flex-1 overflow-y-auto bg-slate-50/50 p-6 md:p-12">
-          <div className="max-w-2xl mx-auto bg-white shadow-sm border border-slate-200 min-h-[800px] p-12 md:p-16 font-serif leading-relaxed text-slate-800 relative">
+        <div className="flex-1 overflow-y-auto bg-slate-50/50 p-0 sm:p-4 md:p-8">
+          <div className="w-full sm:max-w-2xl sm:mx-auto bg-white sm:shadow-sm sm:border border-slate-200 min-h-full sm:min-h-[800px] p-6 sm:p-12 md:p-16 font-serif leading-relaxed text-slate-800 relative text-[15px] sm:text-base">
             <h1 className="text-3xl font-bold mb-8 text-slate-900 font-display">1. Introduction</h1>
             <p className="mb-6">
               The paradigm shift towards local-first software architecture offers a compelling response to growing privacy concerns within academic research. Traditionally, AI-assisted writing tools have relied heavily on cloud-based Large Language Models (LLMs), necessitating the transfer of potentially sensitive or unreleased intellectual property to third-party servers.

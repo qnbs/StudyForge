@@ -12,39 +12,41 @@ export function ElaborationPhase() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between">
+    <div className="max-w-4xl mx-auto space-y-4 md:space-y-6 animate-in fade-in duration-500 pb-16 md:pb-0">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-display font-bold text-slate-900 tracking-tight">Elaboration & Outline</h1>
-          <p className="mt-2 text-slate-500">Structure your paper. Drag and drop chapters or let AI suggest an outline based on your research.</p>
+          <h1 className="text-2xl md:text-3xl font-display font-bold text-slate-900 tracking-tight">Elaboration & Outline</h1>
+          <p className="mt-1 md:mt-2 text-sm md:text-base text-slate-500">Structure your paper. Drag and drop chapters or let AI suggest an outline based on your research.</p>
         </div>
-        <button className="flex items-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-indigo-100 transition-colors">
+        <button className="flex items-center justify-center gap-2 bg-indigo-50 text-indigo-700 px-4 py-3 md:py-2 rounded-xl text-sm font-medium hover:bg-indigo-100 transition-colors w-full md:w-auto shrink-0">
           <Sparkles className="w-4 h-4" />
           Generate Outline
         </button>
       </div>
 
       <div className="bg-white border border-slate-200 rounded-xl shadow-sm">
-        <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between rounded-t-xl">
-          <h2 className="font-semibold text-slate-900">Document Structure</h2>
-          <span className="text-xs font-medium text-slate-500">Estimated Length: ~15 pages</span>
+        <div className="p-3 md:p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between rounded-t-xl">
+          <h2 className="font-semibold text-slate-900 text-sm md:text-base">Document Structure</h2>
+          <span className="text-xs font-medium text-slate-500">~15 pages estimating</span>
         </div>
         
         <div className="p-2 space-y-1">
           {outline.map((item) => (
             <div 
               key={item.id} 
-              className={`group flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-colors cursor-move`}
-              style={{ paddingLeft: `${(item.level - 1) * 2 + 0.5}rem` }}
+              className={`group flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 p-2 rounded-lg hover:bg-slate-50 border border-transparent hover:border-slate-200 transition-colors cursor-move`}
+              style={{ paddingLeft: `${Math.max(0.5, (item.level - 1) * 1.5 + 0.5)}rem` }}
             >
-              <GripVertical className="w-4 h-4 text-slate-300 group-hover:text-slate-500 shrink-0" />
-              <div className="flex-1 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <GripVertical className="w-4 h-4 text-slate-300 group-hover:text-slate-500 shrink-0" />
                 <span className={`text-sm ${item.level === 1 ? 'font-semibold text-slate-900' : 'text-slate-700'}`}>
                   {item.title}
                 </span>
-                <span className="opacity-0 group-hover:opacity-100 flex gap-2 transition-opacity">
-                  <button className="text-xs text-slate-400 hover:text-indigo-600 font-medium">Add Subchapter</button>
-                  <button className="text-xs text-slate-400 hover:text-indigo-600 font-medium">Draft with AI</button>
+              </div>
+              <div className="flex-1 flex sm:justify-end mt-2 sm:mt-0 ml-6 sm:ml-0">
+                <span className="opacity-100 sm:opacity-0 group-hover:opacity-100 flex gap-3 transition-opacity">
+                  <button className="text-[11px] md:text-xs text-slate-500 hover:text-indigo-600 font-medium bg-slate-100 sm:bg-transparent px-2 py-1 sm:p-0 rounded">Add Sub</button>
+                  <button className="text-[11px] md:text-xs text-indigo-600 hover:text-indigo-700 font-medium bg-indigo-50 sm:bg-transparent px-2 py-1 sm:p-0 rounded">Draft (AI)</button>
                 </span>
               </div>
             </div>

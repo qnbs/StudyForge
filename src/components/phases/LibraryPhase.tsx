@@ -1,10 +1,35 @@
 import { Database, Search, Filter, UploadCloud, RefreshCw, CheckCircle2, FileText, ArrowDownToLine, Loader2, Plus, Unlock } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 
 export function LibraryPhase() {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'local' | 'zotero' | 'mendeley' | 'pubmed' | 'arxiv' | 'archive'>('local');
+
+  const globalSettings = useLiveQuery(() => db.settings.get('global'));
+  const zoteroConfig = globalSettings?.zoteroConfig;
+
+  const [zoteroUserId, setZoteroUserId] = useState('');
+  const [zoteroApiKey, setZoteroApiKey] = useState('');
+
+  useEffect(() => {
+    if (zoteroConfig) {
+      setZoteroUserId(zoteroConfig.userId);
+      setZoteroApiKey(zoteroConfig.apiKey);
+    }
+  }, [zoteroConfig]);
+
+  const handleSaveZoteroConfig = async () => {
+    await db.settings.update('global', {
+      zoteroConfig: {
+        userId: zoteroUserId,
+        apiKey: zoteroApiKey
+      }
+    });
+    alert('Zotero credentials saved to IndexedDB.');
+  };
 
   const [isSearchingPubMed, setIsSearchingPubMed] = useState(false);
   const [pubMedQuery, setPubMedQuery] = useState('');
@@ -24,11 +49,98 @@ export function LibraryPhase() {
   const [archiveError, setArchiveError] = useState('');
   const [archiveSort, setArchiveSort] = useState('downloads+desc');
 
-  const [localSources, setLocalSources] = useState([
-    { title: "Local-first software: you own your data, in spite of the cloud", authors: "Kleppmann et al.", year: "2019", type: "PDF", status: 'synced', isOpenAccess: true },
-    { title: "Privacy-Preserving AI in Browser Environments", authors: "Chen, M., et al.", year: "2025", type: "Journal", status: 'synced', isOpenAccess: false },
-    { title: "Evaluating WebAssembly for High-Performance Client-Side Computing", authors: "Smith, J.", year: "2024", type: "Conference", status: 'synced', isOpenAccess: true }
-  ]);
+  const liveLocalSources = useLiveQuery(() => db.sources.toArray()) || [];
+
+  const [isProcessingPdf, setIsProcessingPdf] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState('');
+
+  const handleFileUpload = async (e: any) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsProcessingPdf(true);
+    setProcessingStatus(`Extracting text from ${file.name}...`);
+
+    try {
+      const { extractTextFromPDF, chunkText } = await import('../../lib/pdfParser');
+      const { saveVectorToOPFS } = await import('../../lib/opfs');
+
+      const text = await extractTextFromPDF(file);
+      setProcessingStatus(`Chunking text...`);
+      const chunks = chunkText(text);
+
+      const sourceId = crypto.randomUUID();
+      const newSource = {
+        id: sourceId,
+        title: file.name,
+        authors: ['Unknown (Local PDF)'],
+        year: new Date().getFullYear(),
+        type: 'pdf' as const,
+        addedAt: new Date().toISOString(),
+        isVectorized: true
+      };
+
+      await db.sources.add(newSource);
+
+      setProcessingStatus(`Loading ML model & vectorizing ${chunks.length} chunks...`);
+
+      const worker = new Worker(new URL('../../lib/vectorWorker.ts', import.meta.url), {
+        type: 'module'
+      });
+
+      let completedChunks = 0;
+
+      worker.onmessage = async (event) => {
+        const { type, payload, data } = event.data;
+        if (type === 'progress') {
+          // Model loading progress
+          if (data && data.status) {
+            setProcessingStatus(`Loading Model: ${data.status}`);
+          }
+        } else if (type === 'complete') {
+          const { chunkId, vector } = payload;
+          await saveVectorToOPFS(chunkId, vector);
+          completedChunks++;
+          setProcessingStatus(`Vectorized ${completedChunks}/${chunks.length} chunks...`);
+
+          if (completedChunks === chunks.length) {
+            setIsProcessingPdf(false);
+            setProcessingStatus('');
+            alert('PDF successfully ingested and vectorized locally!');
+            worker.terminate();
+          }
+        } else if (type === 'error') {
+          console.error('Vector Worker Error:', payload.error);
+          alert('Error during vectorization: ' + payload.error);
+          setIsProcessingPdf(false);
+          setProcessingStatus('');
+          worker.terminate();
+        }
+      };
+
+      // save chunks to db and queue for vectorization
+      for (let i = 0; i < chunks.length; i++) {
+        const chunkId = `${sourceId}_${i}`;
+        await db.documentChunks.add({
+          id: chunkId,
+          sourceId,
+          chunkIndex: i,
+          text: chunks[i]
+        });
+
+        worker.postMessage({
+          type: 'embed',
+          payload: { text: chunks[i], chunkId }
+        });
+      }
+
+    } catch (err) {
+      console.error(err);
+      alert('Error parsing PDF.');
+      setIsProcessingPdf(false);
+      setProcessingStatus('');
+    }
+  };
 
   const [pubMedSort, setPubMedSort] = useState('relevance');
 
@@ -188,22 +300,21 @@ export function LibraryPhase() {
     }
   };
 
-  const handleImportToLocal = (result: any) => {
+  const handleImportToLocal = async (result: any) => {
     setImportedIds(prev => {
       const next = new Set(prev);
       next.add(result.id);
       return next;
     });
-    setLocalSources(prev => [
-      ...prev,
-      {
-        title: result.title,
-        authors: result.authors,
-        year: result.year,
-        type: 'PubMed',
-        status: 'synced'
-      }
-    ]);
+    
+    await db.sources.add({
+      id: result.id,
+      title: result.title,
+      authors: [result.authors],
+      year: parseInt(result.year) || new Date().getFullYear(),
+      type: 'web',
+      addedAt: new Date().toISOString()
+    });
   };
 
   return (
@@ -269,16 +380,30 @@ export function LibraryPhase() {
               />
             </div>
             <div className="flex gap-2">
-              <button className="flex-1 sm:flex-none items-center justify-center gap-2 bg-indigo-50 text-indigo-700 font-medium px-4 py-2 rounded-xl border border-indigo-100 hover:bg-indigo-100 transition-colors text-sm flex">
+              <label className="flex-1 sm:flex-none items-center justify-center gap-2 bg-indigo-50 text-indigo-700 font-medium px-4 py-2 rounded-xl border border-indigo-100 hover:bg-indigo-100 transition-colors text-sm flex cursor-pointer">
                 <UploadCloud className="w-4 h-4" />
                 {t('lib.import')}
-              </button>
+                <input 
+                  type="file" 
+                  accept="application/pdf" 
+                  className="hidden" 
+                  onChange={handleFileUpload} 
+                  disabled={isProcessingPdf}
+                />
+              </label>
               <button className="flex-1 sm:flex-none items-center justify-center gap-2 bg-slate-900 text-white font-medium px-4 py-2 rounded-xl hover:bg-slate-800 transition-colors text-sm flex">
                 <ArrowDownToLine className="w-4 h-4" />
                 {t('lib.export')}
               </button>
             </div>
           </div>
+
+          {isProcessingPdf && (
+            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 text-sm text-indigo-700 flex items-center gap-3">
+              <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+              <span className="font-medium">{processingStatus}</span>
+            </div>
+          )}
 
           <div className="flex-1 overflow-x-auto bg-white border border-slate-200 rounded-xl shadow-sm">
             <table className="w-full text-left border-collapse min-w-[600px]">
@@ -291,28 +416,25 @@ export function LibraryPhase() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {localSources.map((source, idx) => (
+                {liveLocalSources.map((source, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                     <td className="p-4">
                       <div className="flex items-start gap-3">
                         <FileText className="w-4 h-4 text-slate-400 shrink-0 mt-0.5" />
                         <div className="flex flex-col gap-1">
                           <span className="text-sm font-medium text-slate-900 line-clamp-2" dangerouslySetInnerHTML={{ __html: source.title }}></span>
-                          {source.isOpenAccess && (
-                            <div className="flex items-center gap-1 text-xs font-medium text-orange-600 bg-orange-50 w-fit px-1.5 py-0.5 rounded">
-                              <Unlock className="w-3 h-3" />
-                              {t('lib.openAccess')}
-                            </div>
-                          )}
+                          <div className="flex items-center gap-1 text-[10px] font-medium text-slate-500 w-fit px-1.5 py-0.5 rounded mt-1 bg-slate-100 uppercase tracking-wider">
+                            {source.type}
+                          </div>
                         </div>
                       </div>
                     </td>
-                    <td className="p-4 text-sm text-slate-600 truncate max-w-[200px]">{source.authors}</td>
+                    <td className="p-4 text-sm text-slate-600 truncate max-w-[200px]">{source.authors.join(', ')}</td>
                     <td className="p-4 text-sm text-slate-600">{source.year}</td>
                     <td className="p-4">
                       <div className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 w-fit px-2 py-1 rounded">
                         <CheckCircle2 className="w-3.5 h-3.5" />
-                        {t('lib.availableOffline')}
+                        {source.isVectorized ? 'Vectorized' : 'Available'}
                       </div>
                     </td>
                   </tr>
@@ -654,9 +776,23 @@ export function LibraryPhase() {
               Sync your Zotero collections directly into your local database.
             </p>
             <div className="space-y-3 w-full">
-              <input type="text" placeholder="Zotero User ID" className="w-full bg-slate-50 border border-slate-200 px-4 py-2.5 md:py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              <input type="password" placeholder="Zotero API Key" className="w-full bg-slate-50 border border-slate-200 px-4 py-2.5 md:py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
-              <button className="w-full bg-slate-900 text-white font-medium py-2.5 md:py-2 rounded-lg hover:bg-slate-800 transition-colors flex justify-center items-center gap-2 text-sm">
+              <input 
+                type="text" 
+                placeholder="Zotero User ID" 
+                value={zoteroUserId}
+                onChange={(e) => setZoteroUserId(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 px-4 py-2.5 md:py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+              />
+              <input 
+                type="password" 
+                placeholder="Zotero API Key" 
+                value={zoteroApiKey}
+                onChange={(e) => setZoteroApiKey(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 px-4 py-2.5 md:py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+              />
+              <button 
+                onClick={handleSaveZoteroConfig}
+                className="w-full bg-slate-900 text-white font-medium py-2.5 md:py-2 rounded-lg hover:bg-slate-800 transition-colors flex justify-center items-center gap-2 text-sm">
                 <RefreshCw className="w-4 h-4" /> Connect & Sync
               </button>
             </div>

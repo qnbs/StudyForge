@@ -13,10 +13,16 @@ import { CommandPalette } from './components/CommandPalette';
 import { BottomNav } from './components/BottomNav';
 import { Search } from 'lucide-react';
 import type { WorkflowPhase } from './types';
+import { initializeDatabase } from './lib/db';
 
 export default function App() {
   const [activePhase, setActivePhase] = useState<WorkflowPhase>('planning');
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [isDbInitialized, setIsDbInitialized] = useState(false);
+
+  useEffect(() => {
+    initializeDatabase().then(() => setIsDbInitialized(true));
+  }, []);
 
   // Global keyboard shortcut
   useEffect(() => {
@@ -29,6 +35,10 @@ export default function App() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  if (!isDbInitialized) {
+    return <div className="flex h-screen w-screen items-center justify-center bg-slate-50"><div className="animate-spin w-8 h-8 rounded-full border-4 border-indigo-600 border-t-transparent"></div></div>;
+  }
 
   const renderActivePhase = () => {
     switch (activePhase) {

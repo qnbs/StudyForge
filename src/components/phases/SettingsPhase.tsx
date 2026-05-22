@@ -1,10 +1,27 @@
 import { Settings2, MonitorSmartphone, Database, Trash2, ShieldCheck, Globe, Cpu, Download, Upload, Moon, Sun, Lock } from 'lucide-react';
 import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../../lib/db';
 
 export function SettingsPhase() {
   const { language, setLanguage, t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'language' | 'theme' | 'model' | 'storage' | 'privacy'>('language');
+
+  const globalSettings = useLiveQuery(() => db.settings.get('global'));
+  
+  const handleUpdateSetting = async (key: string, value: string) => {
+    if (globalSettings) {
+      await db.settings.update('global', { [key]: value });
+    }
+  };
+
+  const handleClearDatabase = async () => {
+    if (window.confirm("Are you sure you want to clear all local data? This cannot be undone.")) {
+      await db.delete();
+      window.location.reload();
+    }
+  };
 
   return (
     <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20 md:pb-0 h-full flex flex-col">
@@ -102,7 +119,10 @@ export function SettingsPhase() {
                    <label className="block text-sm font-medium text-slate-700 mb-3">Color Scheme</label>
                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       {['Light', 'Dark', 'System'].map((theme, i) => (
-                        <div key={i} className={`p-4 border rounded-xl cursor-pointer transition-all ${i === 0 ? 'border-indigo-600 bg-indigo-50/30 ring-1 ring-indigo-600' : 'border-slate-200 hover:border-slate-300'}`}>
+                        <div 
+                          key={i} 
+                          onClick={() => handleUpdateSetting('theme', theme.toLowerCase())}
+                          className={`p-4 border rounded-xl cursor-pointer transition-all ${globalSettings?.theme === theme.toLowerCase() ? 'border-indigo-600 bg-indigo-50/30 ring-1 ring-indigo-600' : 'border-slate-200 hover:border-slate-300'}`}>
                            <div className="flex items-center justify-between mb-3">
                              <span className="font-semibold text-slate-900 text-sm">{theme}</span>
                              {i === 0 && <Sun className="w-4 h-4 text-slate-400" />}
@@ -136,10 +156,13 @@ export function SettingsPhase() {
                  <div>
                    <label className="block text-sm font-medium text-slate-900 mb-1">{t('settings.defaultModel')}</label>
                    <p className="text-xs text-slate-500 mb-3">{t('settings.defaultModelDesc')}</p>
-                   <select className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                     <option>Phi-4 (4-bit Quantized) - Default</option>
-                     <option>Llama 3.2 8B - High Quality</option>
-                     <option>Gemma 3 - Balanced</option>
+                   <select 
+                     value={globalSettings?.modelLimitConfig || 'default'}
+                     onChange={(e) => handleUpdateSetting('modelLimitConfig', e.target.value)}
+                     className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                     <option value="default">Phi-4 (4-bit Quantized) - Default</option>
+                     <option value="high">Llama 3.2 8B - High Quality</option>
+                     <option value="balanced">Gemma 3 - Balanced</option>
                    </select>
                  </div>
                  
@@ -202,7 +225,9 @@ export function SettingsPhase() {
 
                  <div className="pt-4 border-t border-slate-200">
                    <h3 className="font-bold text-red-600 text-sm mb-3 uppercase tracking-wider">{t('settings.dangerZone')}</h3>
-                   <button className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 border border-red-200 text-red-600 hover:bg-red-50 font-medium rounded-lg text-sm transition-colors">
+                   <button 
+                     onClick={handleClearDatabase}
+                     className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 border border-red-200 text-red-600 hover:bg-red-50 font-medium rounded-lg text-sm transition-colors">
                       <Trash2 className="w-4 h-4" />
                       {t('settings.clear')}
                    </button>

@@ -1,63 +1,133 @@
-import { Bot, Search, FileSymlink, Sparkles, Plus } from 'lucide-react';
+import { Bot, Search, FileSymlink, Sparkles, Plus, Loader2, Send } from 'lucide-react';
+import { useState } from 'react';
+import { useLLM } from '../lib/useLLM';
 
 export function RightPanel() {
+  const { isLoaded, isLoading, progress, loadModel, generateStream } = useLLM();
+  const [messages, setMessages] = useState<{ role: 'user' | 'assistant', content: string }[]>([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleSendMessage = async () => {
+    if (!inputValue.trim()) return;
+    
+    if (!isLoaded && !isLoading) {
+       await loadModel('Llama-3.2-1B-Instruct-q4f16_1-MLC');
+       // Don't return, let it proceed once loaded
+    }
+    
+    // We defer the message sending if we're waiting for the model
+    if (isLoading) {
+        alert("Model is currently downloading/loading. Please wait...");
+        return;
+    }
+
+    const userMessage = inputValue;
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setInputValue('');
+    setIsGenerating(true);
+    
+    setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
+
+    const systemPrompt = "You are a specialized academic assistant. Provide rigorous, scholarly feedback. Keep responses concise.";
+
+    try {
+      await generateStream(userMessage, systemPrompt, (text) => {
+          setMessages(prev => {
+              const newMsgs = [...prev];
+              newMsgs[newMsgs.length - 1].content = text;
+              return newMsgs;
+          });
+      });
+    } catch (err: any) {
+      console.error(err);
+      setMessages(prev => {
+          const newMsgs = [...prev];
+          newMsgs[newMsgs.length - 1].content = `Error: ${err.message}`;
+          return newMsgs;
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
-    <aside className="w-72 bg-slate-50 border-l border-slate-200 flex flex-col flex-shrink-0 hidden lg:flex">
-      <div className="p-4 border-b border-slate-200 bg-white">
-        <div className="flex items-center gap-2 mb-4">
+    <aside className="w-80 bg-slate-50 border-l border-slate-200 flex flex-col flex-shrink-0 hidden lg:flex relative">
+      <div className="p-4 border-b border-slate-200 bg-white shadow-sm z-10">
+        <div className="flex items-center gap-2 mb-2">
           <div className="w-6 h-6 bg-indigo-100 rounded-full flex items-center justify-center">
             <Bot className="w-4 h-4 text-indigo-600" />
           </div>
           <h3 className="font-bold text-sm text-slate-800">AI Research Agent</h3>
         </div>
-        <div className="relative">
-          <input 
-            type="text" 
-            placeholder="Ask your document..." 
-            className="w-full bg-slate-50 border border-slate-200 rounded-lg py-2 px-3 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
-          />
-        </div>
+        {!isLoaded && !isLoading && (
+            <button 
+                onClick={() => loadModel()}
+                className="w-full mt-2 text-xs font-semibold bg-slate-900 text-white rounded-lg py-2 px-3 hover:bg-slate-800 transition-colors"
+             >
+                Initialize WebLLM Engine (1.2 GB)
+            </button>
+        )}
+        {isLoading && progress && (
+            <div className="mt-3">
+                <div className="flex justify-between text-[10px] text-slate-600 mb-1 font-mono">
+                    <span>{progress.text.split(']')[0]}]</span>
+                </div>
+                <div className="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden">
+                    <div 
+                        className="bg-indigo-600 h-1.5 transition-all duration-300" 
+                        style={{ width: `${(progress.progress * 100).toFixed(1)}%` }}
+                    />
+                </div>
+            </div>
+        )}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        <section>
-          <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Context Sources</h4>
-          <div className="space-y-2">
-            <div className="p-2.5 bg-white border border-slate-200 rounded-lg shadow-sm group hover:border-indigo-300 transition-colors cursor-pointer">
-              <div className="text-[11px] font-bold text-slate-700">Kleppmann et al. (2019)</div>
-              <div className="text-[10px] text-slate-500 line-clamp-2">"Local-first paradigms ensure that the user remains the sole proprietor of their data..."</div>
-              <div className="mt-1 flex items-center justify-between">
-                <span className="text-[9px] text-indigo-500 font-semibold">Found in 3 sections</span>
-                <span className="text-[9px] bg-slate-100 px-1 rounded">p. 42</span>
-              </div>
-            </div>
-            
-             <div className="p-2.5 bg-white border border-slate-200 rounded-lg shadow-sm group hover:border-indigo-300 transition-colors cursor-pointer">
-              <div className="text-[11px] font-bold text-slate-700">Chen, M., et al. (2025)</div>
-              <div className="text-[10px] text-slate-500 line-clamp-2">"Performance costs of browser-based WebGPU are minimal for transformers..."</div>
-              <div className="mt-1 flex items-center justify-between">
-                <span className="text-[9px] text-indigo-500 font-semibold">Relevant context</span>
-                <span className="text-[9px] bg-slate-100 px-1 rounded">p. 112</span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section>
-          <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Suggested Improvements</h4>
-          <div className="bg-indigo-600 rounded-lg p-3 text-white">
-            <div className="text-xs font-bold mb-1">Academic Tone Check</div>
-            <p className="text-[10px] opacity-90 leading-tight mb-2">Replace this phrasing with a more formal expression: "very beneficial" → "exhibits a significant increase in efficiency".</p>
-            <button className="w-full py-1.5 bg-white/20 hover:bg-white/30 rounded text-[10px] font-bold transition-colors">Apply Change</button>
-          </div>
-        </section>
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white relative">
+          {messages.length === 0 ? (
+             <div className="h-full flex flex-col items-center justify-center text-center px-4">
+                 <Sparkles className="w-8 h-8 text-indigo-200 mb-3" />
+                 <p className="text-sm font-medium text-slate-500">How can I assist your research today?</p>
+                 <p className="text-xs text-slate-400 mt-2">I run entirely in your browser using WebGPU. No data leaves this device.</p>
+             </div>
+          ) : (
+             messages.map((msg, i) => (
+                 <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                     <div className={`p-3 rounded-2xl max-w-[85%] text-sm ${
+                         msg.role === 'user' 
+                          ? 'bg-indigo-600 text-white rounded-tr-sm' 
+                          : 'bg-slate-100 text-slate-800 rounded-tl-sm'
+                     }`}>
+                         {msg.content || (msg.role === 'assistant' && isGenerating && i === messages.length - 1 ? (
+                             <span className="flex items-center gap-1">
+                                 <Loader2 className="w-3 h-3 animate-spin"/> Thinking...
+                             </span>
+                         ) : '')}
+                     </div>
+                 </div>
+             ))
+          )}
       </div>
 
-      <div className="p-4 border-t border-slate-200 bg-white">
-         <button className="w-full flex items-center justify-center gap-2 py-2 border border-dashed border-slate-300 rounded-lg text-xs text-slate-500 hover:bg-slate-50 transition-colors">
-           <Plus className="w-4 h-4" />
-           Add New Reference
-         </button>
+      <div className="p-3 border-t border-slate-200 bg-white">
+         <div className="relative flex items-center">
+             <input 
+               type="text" 
+               value={inputValue}
+               onChange={e => setInputValue(e.target.value)}
+               onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
+               placeholder={isLoaded ? "Ask your agent..." : "Initialize model first..."} 
+               disabled={!isLoaded && !isLoading}
+               className="w-full bg-slate-50 border border-slate-200 rounded-xl py-2.5 pl-3 pr-10 text-xs focus:ring-2 focus:ring-indigo-500 outline-none disabled:opacity-50"
+             />
+             <button 
+                 onClick={handleSendMessage}
+                 disabled={isGenerating || (!isLoaded && !isLoading) || !inputValue.trim()}
+                 className="absolute right-1 w-8 h-8 flex items-center justify-center bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:hover:bg-indigo-600 transition-colors"
+             >
+                 {isGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+             </button>
+         </div>
       </div>
     </aside>
   );

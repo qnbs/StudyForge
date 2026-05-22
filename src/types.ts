@@ -33,9 +33,10 @@ export interface Source {
   title: string;
   authors: string[];
   year: number;
-  type: 'pdf' | 'web' | 'book';
+  type: 'pdf' | 'web' | 'book' | 'zotero';
   addedAt: string;
   isVectorized?: boolean;
+  url?: string;
 }
 
 export interface Agent {

@@ -12,6 +12,9 @@ export function ZoteroSync() {
 
   const [zoteroUserId, setZoteroUserId] = useState('');
   const [zoteroApiKey, setZoteroApiKey] = useState('');
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<{ total: number, synced: number }>({ total: 0, synced: 0 });
+  const [lastSync, setLastSync] = useState<string>('never');
 
   useEffect(() => {
     if (zoteroConfig) {
@@ -36,7 +39,6 @@ export function ZoteroSync() {
     }
 
     try {
-      // Remove apiKey from plaintext settings by overriding
       await db.settings.update('global', {
           zoteroConfig: {
             userId: zoteroUserId
@@ -47,9 +49,63 @@ export function ZoteroSync() {
         await saveApiKey('zotero', zoteroApiKey);
       }
       toast.success('Zotero credentials saved securely in local vault.');
+      handleSync(); // trigger sync after saving
     } catch (err) {
       console.error(err);
       toast.error('Failed to save Zotero configuration securely.');
+    }
+  };
+
+  const handleSync = async () => {
+    if (!zoteroUserId || !zoteroApiKey) {
+      toast.error('Please provide both Zotero User ID and API Key.');
+      return;
+    }
+
+    setIsSyncing(true);
+    try {
+       const response = await fetch(`https://api.zotero.org/users/${zoteroUserId}/items?v=3&format=json&limit=50`, {
+         headers: {
+           'Zotero-API-Key': zoteroApiKey
+         }
+       });
+
+       if (!response.ok) {
+         throw new Error(`Zotero API Error: \${response.statusText}`);
+       }
+
+       const data = await response.json();
+       let newSources = 0;
+
+       for (const item of data) {
+         if (item.data.itemType === 'attachment' || item.data.itemType === 'note') continue;
+         
+         const sourceId = `zotero_\${item.key}`;
+         const existing = await db.sources.get(sourceId);
+         
+         if (!existing) {
+           await db.sources.put({
+             id: sourceId,
+             title: item.data.title || 'Untitled',
+             authors: item.data.creators?.map((c: { firstName?: string; lastName?: string; name?: string }) => c.firstName ? `\${c.firstName} \${c.lastName}` : c.name) || ['Unknown'],
+             year: item.data.date ? parseInt(item.data.date.substring(0, 4)) : new Date().getFullYear(),
+             type: 'zotero',
+             addedAt: new Date().toISOString(),
+             isVectorized: false,
+             url: item.data.url || ''
+           });
+           newSources++;
+         }
+       }
+
+       setSyncStatus({ total: data.length, synced: newSources });
+       setLastSync(new Date().toLocaleTimeString());
+       toast.success(`Zotero sync complete. Added \${newSources} new items.`);
+    } catch (err) {
+       console.error(err);
+       toast.error('Failed to sync with Zotero API.');
+    } finally {
+       setIsSyncing(false);
     }
   };
 
@@ -96,17 +152,17 @@ export function ZoteroSync() {
       <div className="flex-1 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col overflow-hidden">
         <div className="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
           <h2 className="font-semibold text-slate-900 text-sm">Sync Status</h2>
-          <span className="text-[10px] md:text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded">Last synced never</span>
+          <span className="text-[10px] md:text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded">Last synced {lastSync}</span>
         </div>
         <div className="p-4 md:p-6 overflow-y-auto space-y-6">
           <div className="grid grid-cols-3 gap-2 md:gap-4">
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 md:p-4 text-center">
-              <p className="text-xl md:text-3xl font-display font-bold text-slate-900">0</p>
-              <p className="text-[9px] md:text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Items</p>
+              <p className="text-xl md:text-3xl font-display font-bold text-slate-900">{isSyncing ? '...' : syncStatus.total}</p>
+              <p className="text-[9px] md:text-xs text-slate-500 font-medium uppercase tracking-wider mt-1">Found</p>
             </div>
             <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3 md:p-4 text-center">
-              <p className="text-xl md:text-3xl font-display font-bold text-emerald-600">0</p>
-              <p className="text-[9px] md:text-xs text-emerald-600/80 font-medium uppercase tracking-wider mt-1">Synced</p>
+              <p className="text-xl md:text-3xl font-display font-bold text-emerald-600">{isSyncing ? '...' : syncStatus.synced}</p>
+              <p className="text-[9px] md:text-xs text-emerald-600/80 font-medium uppercase tracking-wider mt-1">Imported</p>
             </div>
             <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-3 md:p-4 text-center">
               <p className="text-xl md:text-3xl font-display font-bold text-yellow-600">0</p>
@@ -118,7 +174,13 @@ export function ZoteroSync() {
             <h3 className="text-[10px] md:text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2 md:mb-3">Recent Activity</h3>
             <div className="space-y-2 md:space-y-3">
               <div className="text-sm text-slate-500 text-center py-8">
-                No sync activity yet.
+                {isSyncing ? (
+                   <span className="flex items-center justify-center gap-2"><RefreshCw className="w-4 h-4 animate-spin" /> Syncing...</span>
+                ) : Number(syncStatus.total) > 0 ? (
+                   <span>Successfully synced {syncStatus.synced} un-vectorized references from Zotero.</span>
+                ) : (
+                   <span>No sync activity yet.</span>
+                )}
               </div>
             </div>
           </div>

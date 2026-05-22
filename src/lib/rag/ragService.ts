@@ -81,7 +81,7 @@ export class RAGService {
     this.embeddingWorker.addEventListener('message', progressHandler);
 
     const chunkPromises = chunks.map((chunk) => {
-      return new Promise<DocumentChunk>((resolve) => {
+      return new Promise<DocumentChunk>((resolve, reject) => {
         const id = chunk.id;
         
         const messageHandler = async (e: MessageEvent) => {
@@ -107,6 +107,9 @@ export class RAGService {
             completedChunks++;
             if (onProgress) onProgress(`Vectorized ${completedChunks}/${chunks.length} chunks...`);
             resolve(dbChunk);
+          } else if (type === 'error') {
+            this.embeddingWorker!.removeEventListener('message', messageHandler);
+            reject(new Error(payload.error));
           }
         };
 
@@ -122,13 +125,16 @@ export class RAGService {
   public async queryRAG(query: string, topK: number = 5): Promise<Array<{ chunk: DocumentChunk, score: number }>> {
     if (!this.embeddingWorker) throw new Error("Worker not initialized");
 
-    const queryVector = await new Promise<Float32Array>((resolve) => {
+    const queryVector = await new Promise<Float32Array>((resolve, reject) => {
       const qId = `query_${Date.now()}`;
       const handler = (e: MessageEvent) => {
          const { type, payload } = e.data;
          if (type === 'complete' && payload.chunkId === qId) {
              this.embeddingWorker!.removeEventListener('message', handler);
              resolve(payload.vector);
+         } else if (type === 'error') {
+             this.embeddingWorker!.removeEventListener('message', handler);
+             reject(new Error(payload.error));
          }
       };
       this.embeddingWorker!.addEventListener('message', handler);

@@ -1,5 +1,8 @@
-import { Settings2, Trash2, History, Sparkles, Bot, Save } from 'lucide-react';
+import { useState } from 'react';
+import { Settings2, Trash2, History, Sparkles, Bot, Save, Loader2 } from 'lucide-react';
 import type { Agent } from '../../types';
+import { useLLM } from '../../lib/useLLM';
+import { toast } from 'sonner';
 
 interface AgentEditorProps {
   agent: Agent | null;
@@ -9,6 +12,33 @@ interface AgentEditorProps {
 }
 
 export function AgentEditor({ agent, onUpdate, onDelete, onSave }: AgentEditorProps) {
+  const { isLoaded, isLoading, progress, loadModel, generateStream } = useLLM();
+  const [testInput, setTestInput] = useState('');
+  const [testOutput, setTestOutput] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleTest = async () => {
+    if (!testInput.trim()) return;
+
+    setIsGenerating(true);
+    setTestOutput('');
+
+    try {
+      if (!isLoaded) {
+        await loadModel();
+      }
+
+      await generateStream(testInput, agent?.prompt || '', (text) => {
+        setTestOutput(text);
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to run test. Check model loading status.');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   if (!agent) {
     return (
       <div className="flex-none lg:flex-1 min-h-[700px] lg:min-h-0 bg-white border border-slate-200 rounded-xl shadow-sm flex flex-col items-center justify-center text-slate-500 p-8 text-center">
@@ -119,17 +149,27 @@ export function AgentEditor({ agent, onUpdate, onDelete, onSave }: AgentEditorPr
             </h3>
             <div className="space-y-3 md:space-y-4">
               <textarea 
+                value={testInput}
+                onChange={(e) => setTestInput(e.target.value)}
                 placeholder="Enter sample academic text to test this agent's prompt..."
                 className="w-full h-20 md:h-24 bg-white border border-slate-200 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none shadow-inner"
               />
-              <div className="flex justify-end">
-                <button className="flex items-center justify-center gap-2 bg-indigo-50 text-indigo-700 font-medium px-4 py-2 rounded-lg text-sm hover:bg-indigo-100 transition-colors w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2">
-                  <Sparkles className="w-4 h-4" />
+              <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+                 {isLoading && progress ? <div className="text-xs text-indigo-600 flex items-center gap-2"><Loader2 className="w-3 h-3 animate-spin"/> {progress.text}</div> : <div />}
+                <button 
+                  onClick={handleTest}
+                  disabled={!testInput.trim() || isGenerating}
+                  className="flex items-center justify-center gap-2 bg-indigo-50 text-indigo-700 font-medium px-4 py-2 rounded-lg text-sm hover:bg-indigo-100 transition-colors w-full sm:w-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:opacity-50">
+                  {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                   Run Test
                 </button>
               </div>
-              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 border-dashed min-h-[80px] md:min-h-[100px] flex items-center justify-center text-slate-400 text-sm italic">
-                Output will appear here...
+              <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 border-dashed min-h-[80px] md:min-h-[100px] flex items-start text-sm whitespace-pre-wrap flex-col">
+                {testOutput ? (
+                  <span className="text-slate-900 relative">{testOutput}</span>
+                ) : (
+                  <span className="text-slate-400 italic">Output will appear here...</span>
+                )}
               </div>
             </div>
           </div>

@@ -17,7 +17,7 @@ export function TemplateGallery({ onImport }: TemplateGalleryProps) {
       </div>
       <div className="lg:overflow-y-auto flex-none lg:flex-1 p-3 space-y-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4 lg:gap-0">
         {templates.map((template, idx) => (
-          <div key={idx} className="relative bg-white border border-slate-200 rounded-lg p-3 hover:border-indigo-300 transition-colors group shadow-sm z-10 hover:z-20">
+          <div key={idx} className="relative bg-white cursor-pointer border border-slate-200 rounded-lg p-3 hover:border-indigo-300 transition-colors group shadow-sm z-10 hover:z-20">
             <div className="flex items-start justify-between">
               <h3 className="font-medium text-sm text-slate-900 group-hover:text-indigo-600 transition-colors">{template.title}</h3>
               <button 

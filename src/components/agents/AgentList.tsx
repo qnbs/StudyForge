@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Bot, Search } from 'lucide-react';
 import type { Agent } from '../../types';
 
@@ -8,6 +9,13 @@ interface AgentListProps {
 }
 
 export function AgentList({ agents, selectedAgent, onSelect }: AgentListProps) {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredAgents = agents.filter(agent => {
+    const query = searchQuery.toLowerCase();
+    return agent.name.toLowerCase().includes(query) || agent.role.toLowerCase().includes(query);
+  });
+
   return (
     <div className="w-full lg:w-64 flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm shrink-0 h-auto lg:h-full lg:overflow-hidden">
       <div className="p-3 md:p-4 border-b border-slate-200 bg-slate-50 space-y-2 md:space-y-3 shrink-0">
@@ -17,12 +25,14 @@ export function AgentList({ agents, selectedAgent, onSelect }: AgentListProps) {
             <input 
               type="text" 
               placeholder="Search agents..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-white border border-slate-200 rounded-lg py-2 md:py-1.5 pl-8 md:pl-9 pr-3 text-sm md:text-xs focus:outline-none focus:ring-1 focus:ring-indigo-500 shadow-sm"
             />
         </div>
       </div>
       <div className="lg:overflow-y-auto flex-none lg:flex-1 p-2 space-y-1 flex flex-row lg:flex-col overflow-x-auto lg:overflow-x-visible snap-x">
-        {agents.map((agent) => (
+        {filteredAgents.map((agent) => (
           <button
             key={agent.id}
             onClick={() => onSelect(agent)}
@@ -37,6 +47,11 @@ export function AgentList({ agents, selectedAgent, onSelect }: AgentListProps) {
             </div>
           </button>
         ))}
+        {filteredAgents.length === 0 && (
+          <div className="p-4 text-center text-sm text-slate-500">
+            No agents found.
+          </div>
+        )}
       </div>
     </div>
   );

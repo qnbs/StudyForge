@@ -2,11 +2,26 @@
 
 StudyForge leverages cutting-edge web APIs such as WebGPU, OPFS, and WASM to run heavy machine learning workloads directly in your browser.
 
+![StudyForge UI Preview](https://via.placeholder.com/800x450?text=StudyForge+Hero+Screenshot)
+
 ## Minimum Requirements
 
 - **Browser**: Google Chrome 113+ or Microsoft Edge 113+ (Safari and Firefox have experimental/limited WebGPU support).
 - **Hardware**: A dedicated GPU or modern Apple Silicon (M1+). At least 8GB of system RAM, ideally 16GB+ for 3B+ parameter models.
-- **Disk Space**: At least 5–10 GB of free space for caching models into the unified browser storage quota.
+- **Disk Space**: At least 5–10 GB of free space for caching models into the unified browser storage (OPFS).
+
+---
+
+## 🚀 Quick-Start Workflow
+1. **Upload a Document**: Go to the **Library** phase, and drop your local PDF.
+2. **Review Vectors**: Observe the status switch from _Processing_ to _Vectorized_.
+3. **Draft Context**: Switch to **Elaboration** or **Writing** phase.
+4. **Chat**: Use the right-hand panel assistant to chat with your document using local RAG.
+
+<!-- *(Insert Quick-Start Workflow Video/GIF here)* -->
+![Quick Start Workflow](https://via.placeholder.com/800x450?text=Quick+Start+GIF+Placeholder)
+
+---
 
 ## Enabling WebGPU
 
@@ -29,11 +44,30 @@ When you enter the **Settings** menu inside the app, you can choose from differe
 
 You may also supply a **Custom GGUF URL** point directly to a HuggingFace `.gguf` file allowing you to test specific fine-tunes locally!
 
+---
+
+## Real-World Troubleshooting & Fallbacks
+
+### 💣 Out of Memory (OOM) Errors (SAD Tab)
+The main drawback of WebGPU is its rigid memory allocation behavior. If you allocate a 5GB 8B-LLM but your OS/Browser only permits 4GB contiguous buffer, the Tab will aggressively crash ("Aw, Snap!"). 
+
+**Fixes:**
+1. Switch to a smaller model in generic `Settings`. 
+2. Close other GPU-intensive tabs (Figma, YouTube, WebGL tests).
+
+### 🖥️ Chrome vs Edge vs Firefox
+- **Edge on Windows**: Often manages WebGPU hardware acceleration better on low-spec Windows machines due to DX12 integration bounds. 
+- **Chrome on Mac**: The undisputed king for WebGPU. Apple's Metal backend connects flawlessly to `wgpu`, giving massive inference speedups on M1/M2/M3 arrays.
+- **Firefox/Safari**: Currently strictly experimental. We recommend Chromium. You will fallback to `WASM (CPU)` on Firefox which implies a 5x slowdown.
+
+### 📄 Handling Giant PDFs
+When uploading heavy documents (400+ pages), the parse chunking and MiniLM-L6 embedding pipeline may lag the main thread.
+- **The Process:** The app routes PDF parsing bounding boxes mapping to `pdfWorker.ts`, and embeddings to `embeddingWorker.ts`. 
+- **OOM on PDF ingestion:** If the tab crashes during ingestion, break the PDF into chapters before uploading. Web limits on IndexedDB storage string allocations can sometimes trigger limits.
+
 ## First Time Load Experience
 
 The very first time you initialize the LLM or run a RAG pipeline (PDF vectorization):
 - It must download the LLM weighting files. This can take several minutes based on internet speeds.
 - It will cache them into Origin Private File System (OPFS).
 - Subsequent loads will be **nearly instant**.
-
-If your browser runs out of memory (Out of Memory - OOM), StudyForge will gracefully catch this, warn you, and attempt shifting to the lowest requirement tier.

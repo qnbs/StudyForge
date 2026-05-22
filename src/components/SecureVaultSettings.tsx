@@ -3,7 +3,7 @@ import { useSecureConfig } from '../contexts/SecureConfigContext';
 import { Lock, Key, CheckCircle, ShieldAlert } from 'lucide-react';
 
 export function SecureVaultSettings() {
-  const { hasMasterPasswordSet, isUnlocked, unlock, lock, setMasterPassword, saveApiKey, getApiKey } = useSecureConfig();
+  const { hasMasterPasswordSet, isUnlocked, unlock, lock, setMasterPassword, saveApiKey, getApiKey, inactivityTimeoutMinutes, setInactivityTimeoutMinutes } = useSecureConfig();
   
   const [passwordInput, setPasswordInput] = useState('');
   const [newPasswordInput, setNewPasswordInput] = useState('');
@@ -125,12 +125,27 @@ export function SecureVaultSettings() {
             <p className="text-xs text-indigo-700">Keys are encrypted with AES-256 and stored locally in IndexedDB.</p>
           </div>
         </div>
-        <button onClick={lock} className="text-xs font-medium text-indigo-700 hover:text-indigo-900 flex items-center gap-1 bg-white px-2 py-1 rounded border border-indigo-200">
-          <Lock className="w-3 h-3" /> Lock Vault
+        <button onClick={lock} className="shrink-0 text-xs font-medium text-indigo-700 hover:text-indigo-900 flex items-center gap-1 bg-white px-2 py-1 rounded border border-indigo-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500">
+          <Lock className="w-3 h-3" /> Lock
         </button>
       </div>
 
-      <div className="space-y-4 pt-2 border-t border-indigo-200">
+      <div className="space-y-4 pt-4 border-t border-indigo-200">
+        <div>
+           <label className="block text-xs font-medium text-slate-700 mb-1">Auto-Lock Timeout</label>
+           <select 
+              value={inactivityTimeoutMinutes}
+              onChange={(e) => setInactivityTimeoutMinutes(Number(e.target.value))}
+              className="w-full bg-white border border-slate-200 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+           >
+              <option value={5}>5 Minutes</option>
+              <option value={15}>15 Minutes</option>
+              <option value={30}>30 Minutes</option>
+              <option value={60}>1 Hour</option>
+              <option value={99999999}>Never</option>
+           </select>
+        </div>
+
         <div>
           <label className="block text-xs font-medium text-slate-700 mb-1">Gemini API Key</label>
           <input 

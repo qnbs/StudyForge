@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Zotero Hub v2: incremental sync via `zotero-api-client`, Dexie v6 tables (`zoteroItems`, `zoteroCollections`, `zoteroSyncMeta`), rate-limit handling, collections UI, optional PDF attachment ingest.
+- `ZoteroContext`, `src/lib/zotero/*` service layer, and unit tests for map/sync/rate-limit logic.
 - Hybrid RAG retrieval: BM25 + dense vectors fused with Reciprocal Rank Fusion (`src/lib/rag/hybridSearch.ts`, tests in `hybridSearch.test.ts`).
 - Agent model mapping to Wllama presets (`low` / `medium` / `high`) via `resolveModelUrl()`.
 - LLM singleton context, ingest queue, batched OPFS query, Graphify solo-dev docs, modular `.cursor/rules/`.
@@ -17,8 +19,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Library phase: Local Vector Store views, Zotero integrations UI, Internet Archive fetching with UI layouts.
 
 ### Changed
+- Zotero integration refactored from inline `fetch` (50-item cap) to service layer with Hub UI, collections sidebar, and Dexie-backed cache.
 - `RightPanel` and `AgentEditor` load the agent’s Wllama preset via `ensureModelForRef()` before chat/test generation.
-- Dexie v5 migrates legacy `modelLimitConfig: default` and old agent model labels to preset keys.
+- Dexie v5 migrates legacy `modelLimitConfig: default` and old agent model labels to preset keys; v6 adds Zotero tables.
 - Refactored general routing logic avoiding conventional complex react-router structures to stick to single-page memory swapping for PWA stability.
 - Enhanced UX for settings configuration, introducing responsive tabbed sidebar navigation instead of static lists.
 - Layout overflow issues in mobile views regarding long flex lists.

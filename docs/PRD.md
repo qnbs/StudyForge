@@ -14,7 +14,7 @@ StudyForge is a privacy-first, offline-first Progressive Web Application that tu
 ## Core User Journeys
 
 1. **Planning** — Structure research goals before writing
-2. **Research / Library** — Ingest PDFs, search PubMed/arXiv, sync Zotero/Mendeley metadata
+2. **Research / Library** — Ingest PDFs, search PubMed/arXiv/Archive, Zotero Hub v2 (incremental sync + optional PDF ingest); Mendeley placeholder
 3. **Elaboration** — Outline and organize arguments
 4. **Writing** — TipTap editor with local or BYOK-assisted generation
 5. **Agent Workshop** — Configure local LLM personas
@@ -25,7 +25,8 @@ StudyForge is a privacy-first, offline-first Progressive Web Application that tu
 | Area | Decision | Reference |
 |------|----------|-----------|
 | UI | React 19 + Vite 6 + Tailwind v4 | `package.json` |
-| Metadata DB | Dexie 4 / IndexedDB | `src/lib/db.ts` |
+| Metadata DB | Dexie v6 / IndexedDB (`sources`, `zoteroItems`, `zoteroCollections`, `zoteroSyncMeta`) | `src/lib/db.ts` |
+| Zotero sync | `zotero-api-client`, user-initiated, vault-encrypted API key | `src/lib/zotero/`, `ZoteroContext` |
 | Vector storage | OPFS | `src/lib/opfs.ts`, ADR-0002 |
 | Local LLM | Wllama + WebGPU; agent `model` → `low`/`medium`/`high` GGUF presets | ADR-0001, `src/lib/modelConfig.ts`, `LLMContext` |
 | RAG | Xenova embeddings + hybrid BM25/vector RRF retrieval | `src/lib/rag/hybridSearch.ts`, `queryRAGHybrid` |

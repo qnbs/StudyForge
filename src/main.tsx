@@ -4,6 +4,7 @@ import App from './App.tsx';
 import './index.css';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { SecureConfigProvider } from './contexts/SecureConfigContext';
+import { ZoteroProvider } from './contexts/ZoteroContext';
 import { LLMProvider } from './contexts/LLMContext';
 import { AgentProvider } from './contexts/AgentContext';
 import { registerSW } from 'virtual:pwa-register';
@@ -24,11 +25,13 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <LanguageProvider>
       <SecureConfigProvider>
-        <LLMProvider>
-          <AgentProvider>
-            <App />
-          </AgentProvider>
-        </LLMProvider>
+        <ZoteroProvider>
+          <LLMProvider>
+            <AgentProvider>
+              <App />
+            </AgentProvider>
+          </LLMProvider>
+        </ZoteroProvider>
       </SecureConfigProvider>
     </LanguageProvider>
   </StrictMode>,

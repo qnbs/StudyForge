@@ -37,6 +37,53 @@ export interface Source {
   addedAt: string;
   isVectorized?: boolean;
   url?: string;
+  zoteroKey?: string;
+}
+
+export interface ZoteroCreator {
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  creatorType: string;
+}
+
+export interface ZoteroItem {
+  key: string;
+  version: number;
+  title: string;
+  creators: ZoteroCreator[];
+  abstractNote?: string;
+  date?: string;
+  year?: number;
+  doi?: string;
+  url?: string;
+  publicationTitle?: string;
+  volume?: string;
+  issue?: string;
+  pages?: string;
+  isbn?: string;
+  tags?: Array<{ tag: string }>;
+  dateModified: string;
+  collectionKeys?: string[];
+  attachmentKeys?: string[];
+  itemType?: string;
+  importedToLocal?: boolean;
+}
+
+export interface ZoteroCollection {
+  key: string;
+  name: string;
+  parentKey?: string;
+  version: number;
+  dateModified: string;
+}
+
+export interface ZoteroSyncMeta {
+  id?: number;
+  lastSyncTimestamp: string;
+  libraryVersion: number;
+  totalItemsSynced: number;
+  lastSyncSuccessful: boolean;
 }
 
 /** `low` | `medium` | `high` or full GGUF HTTPS URL */

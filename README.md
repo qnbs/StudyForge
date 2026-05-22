@@ -21,7 +21,7 @@ By leveraging state-of-the-art WebGPU acceleration and high-performance WebAssem
 ### 🛡️ Ironclad Privacy via Offline-First Execution
 Your academic data, intellectual property, and research literature never leave your machine. StudyForge operates entirely within the secure sandbox of your browser.
 * **Trustless Environments**: No server telemetry, no cloud synchronization of documents, and zero middle-men.
-* **OPFS Data Vault**: Utilizes the modern Origin Private File System (OPFS) for ultra-fast, hardware-proximate data caching and indexing.
+* **OPFS for Embeddings**: Origin Private File System stores embedding vectors; bibliographic metadata and Zotero cache live in IndexedDB (Dexie v6).
 
 ### 🧠 Heterogeneous Local RAG (Retrieval-Augmented Generation) Pipeline
 Forget slow server round-trips. StudyForge embeds a seamless local indexing engine utilizing custom Web Workers.
@@ -46,7 +46,7 @@ StudyForge is not just an application; it is an academic operating system carefu
 * **Elaboration & Writing Phases**: Distinct structural phases guiding you from literature review and ideation, straight to structured prose drafting.
 * **Dynamic Agent Workshop**: Sculpt, refine, and deploy customized system-prompted agents directly tailored to specific academic tasks. Includes real-time search filtering and hover-triggered prompt snippet popovers for the community template gallery.
 * **Exports**: Robustly export your active works to standard `.md`, `.html`, `.txt`, and structural LaTeX boilerplate `.tex` natively.
-* **Secure Zotero Hub Ecosystem**: Directly pull your established bibliographic databases into the local execution sphere seamlessly using verified, encrypted credential handling and immediate direct API synchronization.
+* **Secure Zotero Hub (v2)**: Incremental bibliographic sync via the official Zotero Web API (`zotero-api-client`) — collections, paginated items, deletion tracking. Credentials (User ID + API key) live in the encrypted vault; sync is **user-initiated only** (no background pull on startup). Optional PDF attachment ingest into the local RAG pipeline.
 * **Internationalization (i18n)**: Out-of-the-box support for multiple languages (English and German) with scalable dictionary structures.
 * **High-Fidelity Animations**: Integrating `motion/react` for buttery-smooth layout transitions and staggered phase loaders without blocking the main engine thread.
 

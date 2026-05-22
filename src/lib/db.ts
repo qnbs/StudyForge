@@ -1,5 +1,14 @@
 import Dexie, { type Table } from 'dexie';
-import type { Document, Source, Agent, Settings, DocumentChunk } from '../types';
+import type {
+  Document,
+  Source,
+  Agent,
+  Settings,
+  DocumentChunk,
+  ZoteroItem,
+  ZoteroCollection,
+  ZoteroSyncMeta,
+} from '../types';
 import type { EncryptedApiKey } from './crypto';
 import { resolveModelPresetKey } from './modelConfig';
 
@@ -10,6 +19,9 @@ export class StudyForgeDatabase extends Dexie {
   settings!: Table<Settings, string>;
   documentChunks!: Table<DocumentChunk, string>;
   secureConfig!: Table<EncryptedApiKey, string>;
+  zoteroItems!: Table<ZoteroItem, string>;
+  zoteroCollections!: Table<ZoteroCollection, string>;
+  zoteroSyncMeta!: Table<ZoteroSyncMeta, number>;
 
   constructor() {
     super('StudyForgeDB');
@@ -49,6 +61,18 @@ export class StudyForgeDatabase extends Dexie {
           }
         }
       });
+
+    this.version(6).stores({
+      documents: 'id, title, lastEdited',
+      sources: 'id, title, year, type',
+      agents: 'id, name, role',
+      settings: 'id',
+      documentChunks: 'id, sourceId, documentId, embeddingId',
+      secureConfig: 'provider',
+      zoteroItems: '&key, title, doi, dateModified, *collectionKeys',
+      zoteroCollections: '&key, name, parentKey, dateModified',
+      zoteroSyncMeta: '++id, lastSyncTimestamp',
+    });
   }
 }
 
@@ -101,5 +125,15 @@ export async function initializeDatabase() {
       }
     ];
     await db.agents.bulkAdd(defaultAgents);
+  }
+
+  const syncMetaCount = await db.zoteroSyncMeta.count();
+  if (syncMetaCount === 0) {
+    await db.zoteroSyncMeta.add({
+      lastSyncTimestamp: new Date(0).toISOString(),
+      libraryVersion: 0,
+      totalItemsSynced: 0,
+      lastSyncSuccessful: false,
+    });
   }
 }

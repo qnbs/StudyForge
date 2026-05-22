@@ -1,6 +1,25 @@
 # Setup & Initialization Guide
 
-StudyForge leverages cutting-edge web APIs such as WebGPU, OPFS, and WASM to run heavy machine learning workloads directly in your browser. It includes automatic hardware detection and a graceful degradation pathway to standard CPU WASM if a capable GPU is unvailable.
+StudyForge leverages cutting-edge web APIs such as WebGPU, OPFS, and WASM to run heavy machine learning workloads directly in your browser. It includes automatic hardware detection and a graceful degradation pathway to standard CPU WASM if a capable GPU is unavailable.
+
+## Developer Setup
+
+```bash
+git clone https://github.com/qnbs/StudyForge.git
+cd StudyForge
+npm install
+npm run dev      # http://localhost:3000
+```
+
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Vite dev server (HMR enabled) |
+| `npm run build` | Production build + PWA service worker |
+| `npm run preview` | Preview production build |
+| `npm test` | Vitest unit tests |
+| `npm run lint` | ESLint + TypeScript check |
+
+No `.env` file is required for core features. Optional cloud BYOK keys are stored in the in-app vault, not in environment variables.
 
 ![StudyForge UI Preview](https://via.placeholder.com/800x450?text=StudyForge+Hero+Screenshot)
 
@@ -17,6 +36,16 @@ StudyForge leverages cutting-edge web APIs such as WebGPU, OPFS, and WASM to run
 2. **Review Vectors**: Observe the status switch from _Processing_ to _Vectorized_.
 3. **Draft Context**: Switch to **Elaboration** or **Writing** phase.
 4. **Chat**: Use the right-hand panel assistant to chat with your document using local RAG.
+
+### Zotero Hub (optional)
+
+1. In Zotero: **Settings → Feeds/API** → create an API key (read access is sufficient for sync).
+2. In StudyForge: **Settings** → set and unlock the **Master Password** (vault).
+3. **Library** → **Zotero Sync** → enter User ID + API key → **Connect & Sync**.
+4. Browse collections in the Zotero Hub panel; use **Import** per item to add metadata to the local library.
+5. Optionally enable **Download PDFs during sync** to vectorize attachments via the same RAG pipeline as local uploads.
+
+Sync is never automatic on app load — use **Sync now** or `Ctrl/Cmd + K` → “Sync Zotero”. Large libraries are paginated (100 items per request) with rate-limit protection (~300 requests / 5 min per Zotero API key).
 
 <!-- *(Insert Quick-Start Workflow Video/GIF here)* -->
 ![Quick Start Workflow](https://via.placeholder.com/800x450?text=Quick+Start+GIF+Placeholder)

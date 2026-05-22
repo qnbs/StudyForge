@@ -39,6 +39,14 @@ Detailed documentation on the repository and its architecture can be found in th
 
 Simply run the development server or open the built application. Setup requires modern browsers (Chrome/Edge/Safari) with WebGPU enabled to leverage the local AI capabilities fully.
 
+### 🌐 Play in AI Studio / Live Preview
+
+You can directly run, preview, and test **StudyForge** online via Google AI Studio at the following link:
+
+👉 [**StudyForge AI Studio App**](https://ai.studio/apps/9f9af1d6-4f48-45ec-ba6e-9291a5e2dc3d)
+
+*This interactive workspace allows you to try out the StudyForge web app and its LLM capabilities in a sandboxed, interactive environment without needing any local setup.*
+
 ---
 
 <br />
@@ -60,3 +68,11 @@ Simply run the development server or open the built application. Setup requires 
 ### 📖 Dokumentation
 
 Detaillierte Informationen und Dokumentationen zur Architektur finden sich in den entsprechenden Projektdateien (s. Übersicht im englischen Teil).
+
+### 🌐 Live Ausprobieren in AI Studio
+
+Du kannst **StudyForge** direkt und ohne lokale Installation über Google AI Studio testen:
+
+👉 [**StudyForge AI Studio App**](https://ai.studio/apps/9f9af1d6-4f48-45ec-ba6e-9291a5e2dc3d)
+
+*Dieser interaktive Workspace ermöglicht es dir, die StudyForge Web-App und ihre Funktionen als Live-Vorschau in einer sicheren, cloudbasierten Sandbox-Umgebung auszuprobieren – ganz ohne eigenes Setup.*

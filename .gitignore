@@ -12,5 +12,6 @@ graphify-out/memory/
 graphify-out/wiki/
 graphify-out/graph.html
 .code-review-graph/
+.codegraph/
 .cursor/mcp.json
 .cursorrules

@@ -52,4 +52,4 @@ Privacy-first, offline-first academic PWA. Local LLM inference (WebGPU/WASM), cl
 - `globs` syntax: comma-separated, no spaces after commas, no quotes.
 - File size target: 200–700 lines; split when exceeded.
 - Before architectural changes: read `@docs/PRD.md`.
-- Graphify (solo-dev): latest snapshot only in git — `@docs/GRAPHIFY.md`, `@105-graphify-solo-dev.mdc`. Read `graphify-out/GRAPH_REPORT.md` before broad search. No `graphify watch` on low-end hardware.
+- CodeGraph + Graphify: structural code via CodeGraph MCP (`@codegraph.mdc`); macro architecture via `graphify-out/GRAPH_REPORT.md` — `@docs/CODEGRAPH.md`, `@docs/GRAPHIFY.md`, `@105-graphify-solo-dev.mdc`. No `graphify watch` on low-end hardware. `.codegraph/` is local-only (gitignored).

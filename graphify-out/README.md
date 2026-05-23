@@ -15,3 +15,5 @@ This directory holds the **current** codebase knowledge graph for Cursor/agents.
 - `graph.html` — local visualization
 
 Refresh: `npm run graphify:refresh` from repo root. See `docs/GRAPHIFY.md`.
+
+**CodeGraph** (local `.codegraph/`, gitignored) complements this snapshot for symbol/call-graph queries — see `docs/CODEGRAPH.md`.

@@ -58,6 +58,7 @@ Embark on your enhanced research journey with zero configuration friction.
 
 * **[SETUP.md](./SETUP.md)**: Explore precise hardware requirements, memory optimization strategies, and initial bootstrapping workflows.
 * **[ARCHITECTURE.md](./ARCHITECTURE.md)**: Drill down into the highly decoupled, message-passing Web Worker design, state persistence, and cryptographic methodologies.
+* **[docs/CODEGRAPH.md](./docs/CODEGRAPH.md)** & **[docs/GRAPHIFY.md](./docs/GRAPHIFY.md)**: Cursor/agent code navigation — CodeGraph (symbols, call graphs) + Graphify (architecture snapshot). See [CONTRIBUTING.md](./CONTRIBUTING.md) for clone setup.
 
 ---
 

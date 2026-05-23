@@ -27,7 +27,7 @@ StudyForge **deviates** from official Graphify team recommendations. This is int
 - **Avoid:** `graphify save-result` / `graphify-out/memory/` (feedback-loop history)
 - **Prefer:** Read `graphify-out/GRAPH_REPORT.md` before opening many source files
 - **CLI queries:** `graphify query "<question>" --budget 1500` to cap tokens on weak hardware
-- **MCP:** Default `.mcp.example.json` = graphify only. Enable `code-review-graph` via `.mcp.example.full.json` only on capable machines (embeddings are heavy).
+- **MCP:** Default `.mcp.example.json` = **codegraph** + **graphify-studyforge**. Enable `code-review-graph` via `.mcp.example.full.json` only on capable machines (embeddings are heavy). See `@docs/CODEGRAPH.md`.
 
 ## When to Refresh
 
@@ -40,12 +40,18 @@ git add graphify-out/graph.json graphify-out/GRAPH_REPORT.md
 
 Agents may run refresh after large refactors in-session; do not run in parallel with `npm run dev` on low-end RAM.
 
+## Complement with CodeGraph
+
+When `.codegraph/` exists, prefer **CodeGraph MCP** for symbols, callers, callees, and impact (`@codegraph.mdc`). Use Graphify for macro architecture (communities, god nodes, cross-module graph queries).
+
 ## Agent Navigation Order
 
-1. `graphify-out/GRAPH_REPORT.md` (god nodes, communities)
-2. `graphify query` or MCP `graphify-studyforge` (budget-capped)
-3. Targeted `@src/...` file reads
-4. Broad `grep` only as last resort
+1. `codegraph_status` — index present?
+2. CodeGraph MCP for structural / call-graph questions
+3. `graphify-out/GRAPH_REPORT.md` (god nodes, communities)
+4. `graphify query` or MCP `graphify-studyforge` (budget-capped)
+5. Targeted `@src/...` file reads
+6. Broad `grep` only as last resort
 
 <example>
 npm run graphify:refresh && git add graphify-out/graph.json graphify-out/GRAPH_REPORT.md

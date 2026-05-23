@@ -5,6 +5,11 @@
       "args": ["scripts/graphify-mcp-serve.sh"],
       "type": "stdio"
     },
+    "codegraph": {
+      "type": "stdio",
+      "command": "codegraph",
+      "args": ["serve", "--mcp"]
+    },
     "code-review-graph": {
       "command": "uvx",
       "args": ["--with", "code-review-graph[embeddings]", "code-review-graph", "serve"],

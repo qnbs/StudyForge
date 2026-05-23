@@ -29,7 +29,8 @@ Do not store secrets in meeting notes.
 
 | Server | Purpose | Config | Hardware |
 |--------|---------|--------|----------|
-| **graphify-studyforge** | AST knowledge graph MCP | `.mcp.example.json` | Low-end OK |
+| **codegraph** | Symbol search, callers/callees, impact | `.mcp.example.json` | Low-end OK |
+| **graphify-studyforge** | AST knowledge graph MCP (macro) | `.mcp.example.json` | Low-end OK |
 | **code-review-graph** | Embeddings, impact radius | `.mcp.example.full.json` | 16GB+ RAM only |
 | **github** (optional) | Issues, PRs | `~/.cursor/mcp.json` | — |
 | **browser** (optional) | PWA debug | User global | — |
@@ -38,11 +39,13 @@ Do not store secrets in meeting notes.
 
 ```bash
 pip install graphifyy
+codegraph install --target=cursor --location=local --yes
+codegraph init -i
 npm run graphify:refresh
 cp .mcp.example.json .cursor/mcp.json
 ```
 
-Enable **graphify-studyforge** in Cursor Settings → MCP. Do **not** run `graphify hook install` or `graphify watch` on this project.
+Enable **codegraph** and **graphify-studyforge** in Cursor Settings → MCP. Restart Cursor. Do **not** run `graphify hook install` or `graphify watch` on this project.
 
 Full profile (optional): `cp .mcp.example.full.json .cursor/mcp.json`
 
@@ -50,9 +53,10 @@ Policy: `@docs/GRAPHIFY.md`, rule `@105-graphify-solo-dev.mdc`
 
 ### Graph-First Workflow (token-efficient)
 
-1. Read `graphify-out/GRAPH_REPORT.md`
-2. MCP graphify or `graphify query --budget 1500`
-3. Targeted file reads — avoid repo-wide grep on low-end sessions
+1. CodeGraph MCP for symbols / call graphs / impact
+2. Read `graphify-out/GRAPH_REPORT.md` for macro architecture
+3. MCP graphify or `graphify query --budget 1500`
+4. Targeted file reads — avoid repo-wide grep on low-end sessions
 
 ### Remote Snapshot
 

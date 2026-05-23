@@ -13,7 +13,10 @@
     "clean": "rm -rf dist server.js",
     "lint": "eslint . && tsc --noEmit",
     "graphify:refresh": "bash scripts/graphify-refresh.sh",
-    "graphify:query": "graphify query"
+    "graphify:query": "graphify query",
+    "codegraph:init": "codegraph init -i",
+    "codegraph:status": "codegraph status .",
+    "codegraph:sync": "codegraph sync ."
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",

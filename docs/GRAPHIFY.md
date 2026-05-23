@@ -64,9 +64,13 @@ graphify-out/
 - Agents: read `GRAPH_REPORT.md` first (~4KB) instead of full `graph.json` (~60KB)
 - Do not run graphify and Vitest coverage simultaneously on the same machine
 
+## CodeGraph (complement)
+
+For **symbol-level** navigation (callers, callees, impact), use [CodeGraph](CODEGRAPH.md) MCP tools first. Use Graphify for **macro** architecture (communities, god nodes, cross-module graph queries).
+
 ## Agent Rules
 
-See `.cursor/rules/105-graphify-solo-dev.mdc` and `@850-mcp-and-prd` for Cursor agent policy.
+See `.cursor/rules/105-graphify-solo-dev.mdc`, `.cursor/rules/codegraph.mdc`, and `@850-mcp-and-prd` for Cursor agent policy.
 
 ## Optional Pre-Push Hook
 

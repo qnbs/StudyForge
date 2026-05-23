@@ -8,6 +8,11 @@ import type {
   ZoteroItem,
   ZoteroCollection,
   ZoteroSyncMeta,
+  SyncQueueJob,
+  SyncJobHistoryEntry,
+  MendeleyDocument,
+  MendeleySyncMeta,
+  SourceAnnotation,
 } from '../types';
 import type { EncryptedApiKey } from './crypto';
 import { resolveModelPresetKey } from './modelConfig';
@@ -22,6 +27,11 @@ export class StudyForgeDatabase extends Dexie {
   zoteroItems!: Table<ZoteroItem, string>;
   zoteroCollections!: Table<ZoteroCollection, string>;
   zoteroSyncMeta!: Table<ZoteroSyncMeta, number>;
+  syncQueue!: Table<SyncQueueJob, number>;
+  syncJobHistory!: Table<SyncJobHistoryEntry, number>;
+  mendeleyDocuments!: Table<MendeleyDocument, string>;
+  mendeleySyncMeta!: Table<MendeleySyncMeta, number>;
+  sourceAnnotations!: Table<SourceAnnotation, string>;
 
   constructor() {
     super('StudyForgeDB');
@@ -73,6 +83,23 @@ export class StudyForgeDatabase extends Dexie {
       zoteroCollections: '&key, name, parentKey, dateModified',
       zoteroSyncMeta: '++id, lastSyncTimestamp',
     });
+
+    this.version(7).stores({
+      documents: 'id, title, lastEdited',
+      sources: 'id, title, year, type, doi',
+      agents: 'id, name, role',
+      settings: 'id',
+      documentChunks: 'id, sourceId, documentId, embeddingId',
+      secureConfig: 'provider',
+      zoteroItems: '&key, title, doi, dateModified, *collectionKeys',
+      zoteroCollections: '&key, name, parentKey, dateModified',
+      zoteroSyncMeta: '++id, lastSyncTimestamp',
+      syncQueue: '++id, status, provider, createdAt',
+      syncJobHistory: '++id, jobId, completedAt',
+      mendeleyDocuments: '&key, title, dateModified',
+      mendeleySyncMeta: '++id, lastSyncTimestamp',
+      sourceAnnotations: 'id, sourceId',
+    });
   }
 }
 
@@ -86,7 +113,15 @@ export async function initializeDatabase() {
       id: 'global',
       language: 'en',
       theme: 'system',
-      modelLimitConfig: 'medium'
+      modelLimitConfig: 'medium',
+      strictOfflineMode: false,
+      analyticsEnabled: false,
+      featureFlags: {
+        zoteroPush: false,
+        mendeley: false,
+        aiSummarize: true,
+        aiRelevance: true,
+      },
     });
   }
 
@@ -133,6 +168,14 @@ export async function initializeDatabase() {
       lastSyncTimestamp: new Date(0).toISOString(),
       libraryVersion: 0,
       totalItemsSynced: 0,
+      lastSyncSuccessful: false,
+    });
+  }
+
+  const mendeleyMetaCount = await db.mendeleySyncMeta.count();
+  if (mendeleyMetaCount === 0) {
+    await db.mendeleySyncMeta.add({
+      lastSyncTimestamp: new Date(0).toISOString(),
       lastSyncSuccessful: false,
     });
   }

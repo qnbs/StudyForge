@@ -1,4 +1,4 @@
-import { Download } from 'lucide-react';
+import { Download, Quote } from 'lucide-react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useEffect, useState, useRef } from 'react';
@@ -9,6 +9,8 @@ import { ragService } from '../../lib/rag/ragService';
 import { buildExportBlob, downloadBlob } from '../../lib/export/exportDocument';
 import { toast } from 'sonner';
 import { EditorToolbar } from '../writing/EditorToolbar';
+import { CitationPicker } from '../writing/CitationPicker';
+import { Citation } from '../../lib/citation/citationExtension';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -17,6 +19,7 @@ export function WritingPhase() {
   const { isLoaded, isLoading, loadModel, generate } = useLLM();
   const [isGenerating, setIsGenerating] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
+  const [showCitationPicker, setShowCitationPicker] = useState(false);
   const { t } = useLanguage();
   const exportRef = useRef<HTMLDivElement>(null);
 
@@ -63,6 +66,7 @@ export function WritingPhase() {
           levels: [1, 2, 3],
         },
       }),
+      Citation,
     ],
     content: activeDoc?.content || 'Loading...',
     onUpdate: ({ editor }) => {
@@ -193,6 +197,15 @@ export function WritingPhase() {
         </div>
         <div className="flex items-center gap-3 self-start md:self-auto relative" ref={exportRef}>
           <span className="text-[10px] md:text-xs font-mono text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100 hidden sm:inline-block">{t('writing.autosaved')}</span>
+          <button
+            type="button"
+            onClick={() => setShowCitationPicker(true)}
+            className="flex items-center gap-2 text-slate-700 hover:text-indigo-600 px-3 py-2 bg-white rounded-lg border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 font-medium text-sm transition-colors"
+            aria-label={t('citation.insert')}
+          >
+            <Quote className="w-4 h-4" />
+            <span className="hidden sm:inline">{t('citation.insert')}</span>
+          </button>
           <button 
             onClick={() => setShowExportMenu(!showExportMenu)}
             className="flex items-center gap-2 text-slate-700 hover:text-indigo-600 px-3 py-2 bg-white rounded-lg border border-slate-200 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 font-medium text-sm transition-colors">
@@ -244,6 +257,14 @@ export function WritingPhase() {
           </div>
         </div>
       </div>
+
+      <CitationPicker
+        isOpen={showCitationPicker}
+        onClose={() => setShowCitationPicker(false)}
+        onSelect={(sourceId, label) => {
+          editor.chain().focus().insertCitation({ sourceId, label }).run();
+        }}
+      />
     </div>
   );
 }

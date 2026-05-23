@@ -112,3 +112,21 @@ The very first time you initialize the LLM or run a RAG pipeline (PDF vectorizat
 - It must download the LLM weighting files. This can take several minutes based on internet speeds.
 - It will cache them into Origin Private File System (OPFS).
 - Subsequent loads will be **nearly instant**.
+
+---
+
+## Lighthouse PWA smoke (manual)
+
+Run after `npm run build && npm run preview` (or against production):
+
+1. Open Chrome DevTools → **Lighthouse** → mode **Navigation**, categories **Performance** + **PWA**.
+2. Target thresholds (Masterplan v1.1): Performance ≥ 80, PWA ≥ 90.
+3. Verify: installable manifest, service worker registered, offline shell loads.
+4. Optional: `npm run test:coverage` for lib-layer Vitest coverage (`src/lib/**`).
+
+| Check | Pass criteria |
+|-------|----------------|
+| Manifest | `name`, `icons`, `display: standalone` |
+| SW | Precache + offline fallback |
+| HTTPS | localhost or TLS in prod |
+| Research | Sources list + chunk preview without network (after ingest) |

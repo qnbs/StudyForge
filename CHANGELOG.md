@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Added
+- Masterplan v1.1–v2.0: Research UX hooks, engine status in sidebar, strict offline + analytics toggles, PDF chunk preview panel.
+- Reference sync v1.2: `referenceSyncWorker`, Dexie v7 `syncQueue` / `syncJobHistory`, `ReferenceSyncOrchestrator`, `SyncManagementPanel`.
+- Zotero push + conflict resolution (feature flag), lightweight citations (TipTap + `CitationPicker`), DOI import via Crossref.
+- Mendeley OAuth2 PKCE UI + pull provider; native research-library service; AI summarize/relevance in Research insights.
+- ADRs `0003-reference-sync-worker`, `0004-citation-system`; Lighthouse PWA checklist in SETUP.md; `npm run test:coverage`.
 - Zotero Hub v2: incremental sync via `zotero-api-client`, Dexie v6 tables (`zoteroItems`, `zoteroCollections`, `zoteroSyncMeta`), rate-limit handling, collections UI, optional PDF attachment ingest.
 - `ZoteroContext`, `src/lib/zotero/*` service layer, and unit tests for map/sync/rate-limit logic.
 - Hybrid RAG retrieval: BM25 + dense vectors fused with Reciprocal Rank Fusion (`src/lib/rag/hybridSearch.ts`, tests in `hybridSearch.test.ts`).

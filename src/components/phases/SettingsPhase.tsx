@@ -36,7 +36,10 @@ export function SettingsPhase() {
     checkGpu();
   }, []);
   
-  const handleUpdateSetting = async (key: string, value: string) => {
+  const handleUpdateSetting = async (
+    key: string,
+    value: string | boolean | import('../../types').FeatureFlags
+  ) => {
     if (globalSettings) {
       await db.settings.update('global', { [key]: value });
     }
@@ -353,7 +356,12 @@ export function SettingsPhase() {
                  <div className="space-y-4">
                     <label className="flex items-start gap-3 cursor-pointer">
                        <div className="relative flex items-center mt-0.5">
-                         <input type="checkbox" className="sr-only peer" defaultChecked />
+                         <input
+                           type="checkbox"
+                           className="sr-only peer"
+                           checked={globalSettings?.strictOfflineMode ?? false}
+                           onChange={(e) => void handleUpdateSetting('strictOfflineMode', e.target.checked)}
+                         />
                          <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
                        </div>
                        <div>
@@ -364,14 +372,62 @@ export function SettingsPhase() {
                     
                     <label className="flex items-start gap-3 cursor-pointer">
                        <div className="relative flex items-center mt-0.5">
-                         <input type="checkbox" className="sr-only peer" />
+                         <input
+                           type="checkbox"
+                           className="sr-only peer"
+                           checked={globalSettings?.analyticsEnabled ?? false}
+                           onChange={(e) => void handleUpdateSetting('analyticsEnabled', e.target.checked)}
+                         />
                          <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-indigo-500 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
                        </div>
                        <div>
-                         <div className="font-semibold text-slate-900 text-sm">{t('settings.analyticsTitle') || 'Anonymous Usage Analytics'}</div>
-                         <div className="text-xs text-slate-500 mt-1">{t('settings.analyticsDesc') || 'Help us improve by sending crash reports and basic usage metrics. We never collect content.'}</div>
+                         <div className="font-semibold text-slate-900 text-sm">{t('settings.analyticsTitle')}</div>
+                         <div className="text-xs text-slate-500 mt-1">{t('settings.analyticsDesc')}</div>
                        </div>
                     </label>
+
+                    <div className="pt-4 border-t border-slate-100">
+                      <p className="text-xs font-semibold uppercase text-slate-500 mb-3">{t('settings.featureFlags')}</p>
+                      <label className="flex items-center gap-2 mb-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={globalSettings?.featureFlags?.zoteroPush ?? false}
+                          onChange={(e) =>
+                            void handleUpdateSetting('featureFlags', {
+                              ...globalSettings?.featureFlags,
+                              zoteroPush: e.target.checked,
+                            })
+                          }
+                        />
+                        <span className="text-sm">{t('settings.zoteroPush')}</span>
+                      </label>
+                      <label className="flex items-center gap-2 mb-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={globalSettings?.featureFlags?.mendeley ?? false}
+                          onChange={(e) =>
+                            void handleUpdateSetting('featureFlags', {
+                              ...globalSettings?.featureFlags,
+                              mendeley: e.target.checked,
+                            })
+                          }
+                        />
+                        <span className="text-sm">{t('settings.mendeley')}</span>
+                      </label>
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={globalSettings?.featureFlags?.aiSummarize ?? true}
+                          onChange={(e) =>
+                            void handleUpdateSetting('featureFlags', {
+                              ...globalSettings?.featureFlags,
+                              aiSummarize: e.target.checked,
+                            })
+                          }
+                        />
+                        <span className="text-sm">{t('settings.aiSummarize')}</span>
+                      </label>
+                    </div>
                  </div>
               </div>
             </motion.div>

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { WorkflowPhase } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useEngineStatus } from '../hooks/useEngineStatus';
 
 interface SidebarProps {
   activePhase: WorkflowPhase;
@@ -19,6 +20,7 @@ interface SidebarProps {
 
 export function Sidebar({ activePhase, onPhaseChange }: SidebarProps) {
   const { t } = useLanguage();
+  const engine = useEngineStatus();
 
   const phases: { id: WorkflowPhase; label: string; icon: React.ReactNode }[] = [
     { id: 'planning', label: t('sidebar.planning'), icon: <Lightbulb className="w-5 h-5" /> },
@@ -96,11 +98,17 @@ export function Sidebar({ activePhase, onPhaseChange }: SidebarProps) {
           <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight">Local Engine Status</span>
           <span className="flex h-2 w-2 rounded-full bg-green-400" aria-label="System active"></span>
         </div>
-        <div className="text-xs text-slate-300">Phi-4 (4-bit) Quantized</div>
-        <div className="w-full bg-slate-800 h-1 rounded-full mt-2">
-          <div className="bg-indigo-500 h-1 w-3/4 rounded-full"></div>
+        <div className="text-xs text-slate-300 truncate" title={engine.modelLabel}>
+          {engine.modelLabel}
+          {engine.isLoading ? ` (${t('sidebar.loading')})` : engine.isLoaded ? '' : ` (${t('sidebar.idle')})`}
         </div>
-        <div className="text-[9px] text-slate-500 mt-1">VRAM: 4.2GB / 8GB • WebGPU Active</div>
+        <div className="w-full bg-slate-800 h-1 rounded-full mt-2">
+          <div
+            className="bg-indigo-500 h-1 rounded-full transition-all"
+            style={{ width: `${engine.loadPercent}%` }}
+          />
+        </div>
+        <div className="text-[9px] text-slate-500 mt-1">{engine.vramLabel}</div>
       </div>
       
       <div className="px-4 py-3 border-t border-slate-800/50 flex flex-col gap-1">

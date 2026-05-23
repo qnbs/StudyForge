@@ -4,6 +4,7 @@ import App from './App.tsx';
 import './index.css';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { SecureConfigProvider } from './contexts/SecureConfigContext';
+import { ReferenceSyncProvider } from './contexts/ReferenceSyncContext';
 import { ZoteroProvider } from './contexts/ZoteroContext';
 import { LLMProvider } from './contexts/LLMContext';
 import { AgentProvider } from './contexts/AgentContext';
@@ -25,13 +26,15 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <LanguageProvider>
       <SecureConfigProvider>
-        <ZoteroProvider>
-          <LLMProvider>
-            <AgentProvider>
-              <App />
-            </AgentProvider>
-          </LLMProvider>
-        </ZoteroProvider>
+        <ReferenceSyncProvider>
+          <ZoteroProvider>
+            <LLMProvider>
+              <AgentProvider>
+                <App />
+              </AgentProvider>
+            </LLMProvider>
+          </ZoteroProvider>
+        </ReferenceSyncProvider>
       </SecureConfigProvider>
     </LanguageProvider>
   </StrictMode>,

@@ -8,5 +8,11 @@ export default defineConfig({
     pool: 'forks',
     maxWorkers: 2,
     fileParallelism: false,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      include: ['src/lib/**/*.ts'],
+      exclude: ['**/*.test.ts', '**/workers/**'],
+    },
   },
 });

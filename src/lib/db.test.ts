@@ -9,6 +9,11 @@ describe('Local Database (Dexie)', () => {
     await db.zoteroItems.clear();
     await db.zoteroCollections.clear();
     await db.zoteroSyncMeta.clear();
+    await db.syncQueue.clear();
+    await db.syncJobHistory.clear();
+    await db.mendeleyDocuments.clear();
+    await db.mendeleySyncMeta.clear();
+    await db.sourceAnnotations.clear();
   });
 
   it('should insert and retrieve a source', async () => {
@@ -45,6 +50,18 @@ describe('Local Database (Dexie)', () => {
     const item = await db.zoteroItems.get('ABC123');
     expect(item?.title).toBe('Zotero Paper');
     expect(item?.collectionKeys).toContain('COL1');
+  });
+
+  it('should store sync queue jobs (schema v7)', async () => {
+    const id = await db.syncQueue.add({
+      provider: 'zotero',
+      jobType: 'pull',
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    const job = await db.syncQueue.get(id);
+    expect(job?.provider).toBe('zotero');
   });
 
   it('should store zotero sync metadata', async () => {

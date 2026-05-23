@@ -6,6 +6,7 @@ import { useSecureConfig } from '../../contexts/SecureConfigContext';
 import { useZotero } from '../../contexts/ZoteroContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { ZoteroItemCard } from './ZoteroItemCard';
+import { SyncManagementPanel } from './SyncManagementPanel';
 
 export function ZoteroSync() {
   const { t } = useLanguage();
@@ -145,6 +146,7 @@ export function ZoteroSync() {
               </button>
             </>
           )}
+          {isConnected && <SyncManagementPanel />}
         </div>
       </div>
 

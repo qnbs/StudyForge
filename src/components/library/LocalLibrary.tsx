@@ -12,6 +12,8 @@ export function LocalLibrary() {
 
   const [isProcessingPdf, setIsProcessingPdf] = useState(false);
   const [processingStatus, setProcessingStatus] = useState('');
+  const [doiInput, setDoiInput] = useState('');
+  const [isImportingDoi, setIsImportingDoi] = useState(false);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -39,9 +41,41 @@ export function LocalLibrary() {
     }
   };
 
+  const handleDoiImport = async () => {
+    if (!doiInput.trim()) return;
+    setIsImportingDoi(true);
+    try {
+      const { importSourceByDoi } = await import('../../lib/research-library');
+      await importSourceByDoi(doiInput);
+      setDoiInput('');
+      toast.success(t('lib.doiImported'));
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'DOI import failed');
+    } finally {
+      setIsImportingDoi(false);
+    }
+  };
+
   return (
     <>
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-4 flex-wrap">
+        <div className="flex gap-2 flex-1 min-w-[200px]">
+          <input
+            type="text"
+            value={doiInput}
+            onChange={(e) => setDoiInput(e.target.value)}
+            placeholder={t('lib.doiPlaceholder')}
+            className="flex-1 border border-slate-200 rounded-xl px-3 py-2 text-sm"
+          />
+          <button
+            type="button"
+            onClick={() => void handleDoiImport()}
+            disabled={isImportingDoi}
+            className="px-4 py-2 bg-slate-800 text-white text-sm rounded-xl disabled:opacity-50"
+          >
+            {t('lib.doiImport')}
+          </button>
+        </div>
         <div className="flex gap-2 w-full sm:w-auto">
           <label className="flex-1 sm:flex-none items-center justify-center gap-2 bg-indigo-50 text-indigo-700 font-medium px-4 py-2 rounded-xl border border-indigo-100 hover:bg-indigo-100 transition-colors text-sm flex cursor-pointer">
             <UploadCloud className="w-4 h-4" />

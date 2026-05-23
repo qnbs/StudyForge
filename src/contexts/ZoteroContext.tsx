@@ -10,10 +10,11 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { toast } from 'sonner';
 import { db } from '../lib/db';
 import { useSecureConfig } from './SecureConfigContext';
-import { incrementalZoteroSync, type SyncProgress } from '../lib/zotero/syncUtils';
+import { useReferenceSync } from './ReferenceSyncContext';
 import { resetZoteroClient } from '../lib/zotero/zoteroClient';
 import { importZoteroItemToSources } from '../lib/zotero/importToSources';
 import type { ZoteroItem } from '../types';
+import type { SyncProgress } from '../lib/zotero/syncUtils';
 
 const AUTO_PDF_STORAGE_KEY = 'studyforge_zotero_auto_pdf';
 
@@ -36,16 +37,17 @@ export function ZoteroProvider({ children }: { children: ReactNode }) {
   const globalSettings = useLiveQuery(() => db.settings.get('global'));
   const zoteroConfig = globalSettings?.zoteroConfig;
   const { isUnlocked, saveApiKey, getApiKey, hasMasterPasswordSet } = useSecureConfig();
+  const { pullZotero, isSyncing: refSyncing, syncProgress: refProgress } = useReferenceSync();
 
-  const [isSyncing, setIsSyncing] = useState(false);
   const [lastSync, setLastSync] = useState<string | null>(null);
-  const [syncProgress, setSyncProgress] = useState<SyncProgress | null>(null);
   const [hasApiKey, setHasApiKey] = useState(false);
   const [autoDownloadPdfs, setAutoDownloadPdfsState] = useState(
     () => localStorage.getItem(AUTO_PDF_STORAGE_KEY) === 'true'
   );
 
   const isConnected = !!(zoteroConfig?.userId && hasApiKey);
+  const isSyncing = refSyncing;
+  const syncProgress = refProgress as SyncProgress | null;
 
   useEffect(() => {
     if (isUnlocked) {
@@ -61,7 +63,7 @@ export function ZoteroProvider({ children }: { children: ReactNode }) {
         setLastSync(new Date(meta.lastSyncTimestamp).toLocaleString());
       }
     });
-  }, []);
+  }, [isSyncing]);
 
   const setAutoDownloadPdfs = useCallback((value: boolean) => {
     setAutoDownloadPdfsState(value);
@@ -95,45 +97,9 @@ export function ZoteroProvider({ children }: { children: ReactNode }) {
   );
 
   const sync = useCallback(async () => {
-    if (!zoteroConfig?.userId) {
-      toast.error('Please provide your Zotero User ID.');
-      return;
-    }
-    if (!isUnlocked) {
-      toast.error('Unlock your Secure Vault in Settings to sync with Zotero.');
-      return;
-    }
-
-    const apiKey = await getApiKey('zotero');
-    if (!apiKey) {
-      toast.error('Please provide your Zotero API Key.');
-      return;
-    }
-
-    setIsSyncing(true);
-    setSyncProgress(null);
-
-    try {
-      const result = await incrementalZoteroSync({
-        credentials: { apiKey, userId: zoteroConfig.userId },
-        autoDownloadPdfs,
-        onProgress: setSyncProgress,
-      });
-
-      setLastSync(new Date().toLocaleString());
-      const pdfMsg =
-        result.pdfsDownloaded !== undefined && result.pdfsDownloaded > 0
-          ? ` ${result.pdfsDownloaded} PDF(s) ingested.`
-          : '';
-      toast.success(
-        `Zotero sync complete. ${result.syncedItems} item(s) updated.${pdfMsg}`
-      );
-    } catch {
-      // Errors surfaced via rateLimiter / syncUtils
-    } finally {
-      setIsSyncing(false);
-    }
-  }, [zoteroConfig, isUnlocked, getApiKey, autoDownloadPdfs]);
+    await pullZotero(autoDownloadPdfs);
+    setLastSync(new Date().toLocaleString());
+  }, [pullZotero, autoDownloadPdfs]);
 
   const disconnect = useCallback(async () => {
     await db.settings.update('global', { zoteroConfig: undefined });
